@@ -14,6 +14,8 @@ simulated function name GetReserveType(const out EffectAppliedData ApplyEffectPa
 {
 	local XComGameState_Item ItemState;
 	local X2WeaponTemplate WeaponTemplate;
+	local name OverwatchReserve;
+	local name PistolOverwatchReserve;
 
 	if (ApplyEffectParameters.ItemStateObjectRef.ObjectID > 0)
 	{
@@ -31,8 +33,6 @@ simulated function name GetReserveType(const out EffectAppliedData ApplyEffectPa
 				//	will need to update if
 				//	 - overwatch changes 
 				//	 - a new weapon type becomes available simultaneously with primaries or pistols
-				local name OverwatchReserve;
-				local name PistolOverwatchReserve;
 				
 				//get the overwatch identifier names
 				OverwatchReserve = class'X2CharacterTemplateManager'.default.OverwatchReserveActionPoint;

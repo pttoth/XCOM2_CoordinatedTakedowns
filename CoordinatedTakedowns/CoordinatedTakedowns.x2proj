@@ -30,6 +30,15 @@
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\CoordinatedTakedowns\Classes\X2DownloadableContentInfo_CoordinatedTakedowns.uc" />
+    <Content Include="Src\CoordinatedTakedowns\Classes\X2Effect_MarkForTakedown.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\CoordinatedTakedowns\Classes\X2Effect_ReserveTakedownActionPoints.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="test_notes.txt">
+      <SubType>Content</SubType>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildLocalExtensionPath)\XCOM2.targets" />
 </Project>

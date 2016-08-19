@@ -14,7 +14,6 @@ class X2DownloadableContentInfo_CoordinatedTakedowns
 
 var config array<name> CAPABLE_WEAPONS_PRIMARY;
 var config array<name> CAPABLE_WEAPONS_PISTOL;
-var config array<name> CAPABLE_WEAPONS_SNIPER;
 
 /// <summary>
 /// Called after the Templates have been created (but before they are validated) while this DLC / Mod is installed.
@@ -23,7 +22,6 @@ static event OnPostTemplatesCreated()
 {
 	AddAbilitiesToPrimaries();
 	AddAbilitiesToPistols();
-	AddAbilitiesToSnipers();
 }
 
 static function AddAbilitiesToPrimaries(){
@@ -57,25 +55,7 @@ static function AddAbilitiesToPistols(){
 			//`Log("CoordinatedTakedowns: MISSING WEAPON " $ string(WeaponName) $ ", skipping");
 		}else{
 			//`Log("CoordinatedTakedowns: Added abilities to " $ string(WeaponName));
-			WeaponTemplate.Abilities.AddItem( 'MarkForTakedown' );
-			WeaponTemplate.Abilities.AddItem( 'TakedownShot' );
-		}
-	}
-}
-
-static function AddAbilitiesToSnipers(){
-	local X2ItemTemplateManager				ItemManager;
-	local X2WeaponTemplate					WeaponTemplate;
-	local name								WeaponName;
-	ItemManager = class'X2ItemTemplateManager'.static.GetItemTemplateManager();
-
-	foreach default.CAPABLE_WEAPONS_SNIPER(WeaponName){
-		WeaponTemplate = X2WeaponTemplate( ItemManager.FindItemTemplate( WeaponName ) ); 
-		if( none == WeaponTemplate){
-			//`Log("CoordinatedTakedowns: MISSING WEAPON " $ string(WeaponName) $ ", skipping");
-		}else{
-			//`Log("CoordinatedTakedowns: Added abilities to " $ string(WeaponName));
-			WeaponTemplate.Abilities.AddItem( 'MarkForTakedown' );
+			//WeaponTemplate.Abilities.AddItem( 'MarkForTakedown' );
 			WeaponTemplate.Abilities.AddItem( 'TakedownShot' );
 		}
 	}
