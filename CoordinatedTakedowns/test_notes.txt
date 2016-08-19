@@ -1,0 +1,19 @@
+	bApplyOnHit = true;
+	bApplyOnMiss = true;
+	
+	DuplicateResponse = eDupe_Refresh;
+	bDupeForSameSourceOnly = true; // when adding the effect to a target, any similar effects coming from a different source are ignored when checking for a pre-existing effect
+
+
+	bRemoveWhenSourceDies = true;
+    bRemoveWhenTargetDies = true;
+	bRemoveWhenSourceDamaged = true;
+
+
+
+
+	//scanning protocol, might be needed
+	FlyOver = X2Action_PlaySoundAndFlyOver(class'X2Action_PlaySoundAndFlyOver'.static.AddToVisualizationTrack(BuildTrack, VisualizeGameState.GetContext()));
+	FlyOver.SetSoundAndFlyOverParameters(none, AbilityTemplate.LocFlyOverText, '', eColor_Bad, AbilityTemplate.IconImage, default.LookAtDuration, true);
+		//use this for it
+		var string  IconImage; //  UI display info for effect SOURCE - usually only applicable for certain abilities, such as Mind Control, where you need to distinguish the source and the target
