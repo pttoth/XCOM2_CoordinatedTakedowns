@@ -14,12 +14,11 @@ function EventListenerReturn MarkTriggerCheck(Object EventData,
 
 	AbilityContext = XComGameStateContext_Ability(GameState.GetContext());
 	if (AbilityContext != none){
+		History = `XCOMHISTORY;
 		AttackingUnit = class'X2TacticalGameRulesetDataStructures'.static.GetAttackingUnitState(GameState); //this checks whether the activated ability is offensive
-		if (AttackingUnit != none && AttackingUnit.IsEnemyUnit(CoveringUnit)){
-			History = `XCOMHISTORY;
-			MarkingUnit = XComGameState_Unit(History.GetGameStateForObjectID(ApplyEffectParameters.SourceStateObjectRef.ObjectID));
-			MarkedUnit = XComGameState_Unit(History.GetGameStateForObjectID(ApplyEffectParameters.TargetStateObjectRef.ObjectID));
-			
+		MarkingUnit = XComGameState_Unit(History.GetGameStateForObjectID(ApplyEffectParameters.SourceStateObjectRef.ObjectID));
+		MarkedUnit = XComGameState_Unit(History.GetGameStateForObjectID(ApplyEffectParameters.TargetStateObjectRef.ObjectID));
+		if (AttackingUnit != none && AttackingUnit.IsFriendlyUnit(MarkingUnit)){
 			MarkEffect = X2Effect_MarkForTakedown(GetX2Effect());
 			if( MarkEffect == none ){
 				`RedScreen("XComGamestate_MarkForTakedown: on acquision of MarkEffect, GetX2Effect returned 'none' ");

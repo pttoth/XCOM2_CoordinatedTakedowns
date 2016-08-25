@@ -17,3 +17,8 @@
 	FlyOver.SetSoundAndFlyOverParameters(none, AbilityTemplate.LocFlyOverText, '', eColor_Bad, AbilityTemplate.IconImage, default.LookAtDuration, true);
 		//use this for it
 		var string  IconImage; //  UI display info for effect SOURCE - usually only applicable for certain abilities, such as Mind Control, where you need to distinguish the source and the target
+
+
+
+	abilitycost bug, where you can mark multiple times
+	Im guessing a bug with the sniper rifle and pistol coexisting
