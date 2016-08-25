@@ -92,8 +92,18 @@ static function X2AbilityTemplate AddMarkForTakedownAbility()
 //Ability gameplay effects
 //doesn't reveal soldier(this is only mark, not shoot)
 	Template.Hostility = eHostility_Neutral;
+	Template.bIsPassive = true;
+	//bAllowedByDefault;		//  if true, this ability will be enabled by default. Otherwise the ability will have to be enabled before it is usable
+	//AdditionalAbilities		//  when a unit is granted this ability, it will be granted all of these abilities as well
+	//PostActivationEvents;     //  trigger these events after AbilityActivated is triggered (only when not interrupted) EventData=ability state, EventSource=owner unit state
 //place the mark on the target
 	TakedownMarkEffect = new class'X2Effect_MarkForTakedown';
+	TakedownMarkEffect.BuildPersistentEffect(1, true, true,, eGameRule_TacticalGameStart);
+	TakedownMarkEffect.SetDisplayInfo(ePerkBuff_Passive,
+										Template.LocFriendlyName,
+										Template.GetMyLongDescription(),
+										Template.IconImage,
+										true, , Template.AbilitySourceName);
 	Template.AddTargetEffect(TakedownMarkEffect);
 //reserve TakedownActionPoint to use when shooting
 	ReserveActionPointsEffect = new class'X2Effect_ReserveTakedownActionPoints';
@@ -101,7 +111,7 @@ static function X2AbilityTemplate AddMarkForTakedownAbility()
 
 //Set it up in the game
 	Template.BuildNewGameStateFn = TypicalAbility_BuildGameState;
-	Template.BuildVisualizationFn = OverwatchAbility_BuildVisualization; //need to modify?
+	//Template.BuildVisualizationFn = OverwatchAbility_BuildVisualization; //need to modify?
 	//Template.CinescriptCameraType = "Overwatch";
 
 	return Template;	
@@ -116,7 +126,8 @@ static function X2AbilityTemplate AddTakedownShotAbility()
 	local X2AbilityToHitCalc_StandardAim				StandardAim;
 	local X2Condition_UnitProperty						ShooterCondition;
 	local X2AbilityTarget_Single						SingleTarget;
-	local X2AbilityTrigger_OnAbilityActivated			Trigger;
+	local X2AbilityTrigger_OnAbilityActivated			TriggerAbilityActivate;
+	local X2AbilityTrigger_Event						TriggerMovement;
 	local X2Effect_Knockback							KnockbackEffect;
 	local X2Condition_Visibility						TargetVisibilityCondition;
 	local X2Condition_UnitEffectsWithAbilitySource		AbilitySourceCondition; //this check whether the target was marked by us
@@ -179,18 +190,23 @@ static function X2AbilityTemplate AddTakedownShotAbility()
 	Template.bAllowBonusWeaponEffects = true;
 	Template.bAllowFreeFireWeaponUpgrade = false;	
 	Template.bAllowAmmoEffects = true;
+
+/*
 //Trigger on shooting - immediately after the triggering shooter
-	Trigger = new class'X2AbilityTrigger_OnAbilityActivated';
-	Trigger.SetListenerData('StandardShot');
-	Template.AbilityTriggers.AddItem(Trigger);
-	/*
-	Trigger = new class'X2AbilityTrigger_Event';
-	Trigger.EventObserverClass = class'X2TacticalGameRuleset_MovementObserver';
-	Trigger.MethodName = 'InterruptGameState';
-	Template.AbilityTriggers.AddItem(Trigger);
-	*/
+	TriggerAbilityActivate = new class'X2AbilityTrigger_OnAbilityActivated';
+	TriggerAbilityActivate.SetListenerData('StandardShot');
+	Template.AbilityTriggers.AddItem(AbilityActivateTrigger);
+
+
+//Trigger on movement - interrupt the move
+	TriggerMovement = new class'X2AbilityTrigger_Event';
+	TriggerMovement.EventObserverClass = class'X2TacticalGameRuleset_MovementObserver';
+	TriggerMovement.MethodName = 'InterruptGameState';	
+	Template.AbilityTriggers.AddItem(TriggerMovement);
+*/
+
 // Damage Effect
-	Template.AddTargetEffect(default.WeaponUpgradeMissDamage);
+	//Template.AddTargetEffect(default.WeaponUpgradeMissDamage);
 	Template.AssociatedPassives.AddItem('HoloTargeting'); // marks to gain the aim bonus?
 //visuals (knockback)
 	KnockbackEffect = new class'X2Effect_Knockback';

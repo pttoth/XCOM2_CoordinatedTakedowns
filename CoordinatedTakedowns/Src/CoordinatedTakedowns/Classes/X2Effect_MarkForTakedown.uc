@@ -1,9 +1,32 @@
 class X2Effect_MarkForTakedown extends X2Effect_Persistent;
 
+//var name AbilityToActivate;   //  ability to activate when the covering fire check is matched
+								//		note: not needed, because the weapon specific actions points filter the appropriate shot to activate
+var bool bPreEmptiveFire;		//	controls whether the marking soldier should fire before the triggering soldier
+
+function RegisterForEvents(XComGameState_Effect EffectGameState)
+{
+	local X2EventManager				EventMgr;
+	local Object						EffectObj;
+	local XComGamestate_MarkForTakedown	MarkState;
+
+	EventMgr = `XEVENTMGR;
+	EffectObj = EffectGameState;
+	MarkState = XComGamestate_MarkForTakedown(EffectGameState);
+
+	if(MarkState == none){
+		`RedScreen("XComGamestate_MarkForTakedown: GameState reference casting failed");
+	}else{
+		EventMgr.RegisterForEvent(EffectObj, 'AbilityActivated', MarkState.MarkTriggerCheck, ELD_OnStateSubmitted);
+	}
+}
+
 DefaultProperties
 {
+	bPreEmptiveFire = false
+	//inherited
 	iNumTurns = 1
-	EffectName = "MarkedForTakedown"	// Used to identify the effect for purposes of stacking with other effects.
+	EffectName = "MarkedForTakedownEffect"	// Used to identify the effect for purposes of stacking with other effects.
 	bDupeForSameSourceOnly = true		// when adding the effect to a target, any similar effects coming from a different source are ignored when checking for a pre-existing effect
 	DuplicateResponse = eDupe_Ignore
 	bApplyOnHit = true
@@ -12,7 +35,6 @@ DefaultProperties
     bRemoveWhenTargetDies = true
 	bRemoveWhenSourceDamaged = true
 	bUniqueTarget = true				// for a given source, this effect may only apply to one target. any pre-existing effect on another target is removed in HandleApplyEffect
-
 }
 
 //if very, very bored - check them

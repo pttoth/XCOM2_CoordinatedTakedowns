@@ -36,6 +36,18 @@
     <Content Include="Src\CoordinatedTakedowns\Classes\X2Effect_ReserveTakedownActionPoints.uc">
       <SubType>Content</SubType>
     </Content>
+    <Content Include="Src\CoordinatedTakedowns\Classes\XComGamestate_MarkForTakedown.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\CoordinatedTakedowns\X2Effect_CoveringFire.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\CoordinatedTakedowns\X2TacticalGameRulesetDataStructures.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\CoordinatedTakedowns\XComGameState_Effect.uc">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="test_notes.txt">
       <SubType>Content</SubType>
     </Content>
