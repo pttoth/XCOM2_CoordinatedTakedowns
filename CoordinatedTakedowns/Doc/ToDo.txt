@@ -1,0 +1,10 @@
+make mod compatible with Long War 2
+	if LW2 loads later than this mod, then it erases all previous weapontemplates and adds its own
+	LW2 provides hooks to re-add templates after LW2 initialized
+	see LW2_Tuple
+	
+find out how the crash occured before with GameStates
+	could not seem to reproduce
+	
+
+
