@@ -1,9 +1,19 @@
-class XComGamestate_MarkForTakedown extends XComGameState_Effect;
+//---------------------------------------------------------------------------------------
+//  FILE:    XComGameState_Effect_MarkForTakedown.uc
+//  AUTHOR:  Tapir
+//  PURPOSE: Overrides the XComGameState_Effect, adding the TakedownCheck function to it
+//				TakedownCheck watches the onAbilityActivated event and triggers the takedown if conditions are met
+//---------------------------------------------------------------------------------------
 
-function EventListenerReturn MarkTriggerCheck(Object EventData, 
-													Object EventSource, 
+class XComGameState_Effect_MarkForTakedown extends XComGameState_Effect
+	//native(Core) 
+	dependson(X2Effect);
+
+//in case of override conflict with your own mod, copy this function into your own overriding class
+function EventListenerReturn TakedownTriggerCheck(	Object		  EventData, 
+													Object		  EventSource, 
 													XComGameState GameState, 
-													Name EventID){
+													Name		  EventID){
 	local XComGameState_Unit 			AttackingUnit; // needed for checking whether the triggering action is offensive
 	local XComGameState_Unit			MarkingUnit, MarkedUnit; // the shooter and the target
 	local XComGameStateHistory 			History;					
@@ -58,4 +68,3 @@ function EventListenerReturn MarkTriggerCheck(Object EventData,
 	}
 	return ELR_NoInterrupt;
 }
-

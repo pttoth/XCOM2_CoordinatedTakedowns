@@ -10,26 +10,23 @@ class X2Effect_ReserveTakedownActionPoints
 var name TakedownActionPoint;
 var name TakedownPistolActionPoint;
 
-simulated function name GetReserveType(const out EffectAppliedData ApplyEffectParameters, XComGameState NewGameState)
-{
-	local XComGameState_Item ItemState;
-	local X2WeaponTemplate WeaponTemplate;
-	local name OverwatchReserve;
-	local name PistolOverwatchReserve;
+simulated function name GetReserveType(const out EffectAppliedData ApplyEffectParameters, XComGameState NewGameState){
+	local XComGameState_Item	ItemState;
+	local X2WeaponTemplate		WeaponTemplate;
+	local name					OverwatchReserve;
+	local name					PistolOverwatchReserve;
 
-	if (ApplyEffectParameters.ItemStateObjectRef.ObjectID > 0)
-	{
+	if (ApplyEffectParameters.ItemStateObjectRef.ObjectID > 0){
 		ItemState = XComGameState_Item(NewGameState.GetGameStateForObjectID(ApplyEffectParameters.ItemStateObjectRef.ObjectID));
-		if (ItemState == none)
+		if (ItemState == none){
 			ItemState = XComGameState_Item(`XCOMHISTORY.GetGameStateForObjectID(ApplyEffectParameters.ItemStateObjectRef.ObjectID));
-
-		if (ItemState != none)
-		{
+		}
+		if (ItemState != none){
 			WeaponTemplate = X2WeaponTemplate(ItemState.GetMyTemplate());
-			if (WeaponTemplate != None && WeaponTemplate.OverwatchActionPoint != '')
+			if (WeaponTemplate != None && WeaponTemplate.OverwatchActionPoint != ''){
 				//workaround to save an X2CharacterTemplateManager override
 				//	identifies the weapon the same way overwatch does
-				//	based on that information retuns Takedown's own reserve types
+				//	based on that information returns Takedown's own reserve types
 				//	will need to update if
 				//	 - overwatch changes 
 				//	 - a new weapon type becomes available simultaneously with primaries or pistols
@@ -40,14 +37,19 @@ simulated function name GetReserveType(const out EffectAppliedData ApplyEffectPa
 
 				//if the weapon uses standard overwatch
 				if( WeaponTemplate.OverwatchActionPoint == OverwatchReserve ){
+					`RedScreen("CoordinatedTakedowns:	Weapon uses standard overwatch, allocating TakedownActionPoint");
 					return TakedownActionPoint;
 				}
 				//if the weapon uses pistol overwatch
 				if( WeaponTemplate.OverwatchActionPoint == PistolOverwatchReserve ){
+					`RedScreen("CoordinatedTakedowns:	Weapon uses pistol overwatch, allocating TakedownPistolActionPoint");
 					return TakedownPistolActionPoint;
+					//`RedScreen("CoordinatedTakedowns:	WARNING normal overwatch reserved!!!!!!!!!!");
+					//return TakedownActionPoint;
 				}
 
 				return WeaponTemplate.OverwatchActionPoint;
+			}
 		}
 	}
 	return default.ReserveType;
@@ -55,8 +57,8 @@ simulated function name GetReserveType(const out EffectAppliedData ApplyEffectPa
 
 DefaultProperties
 {
-	TakedownActionPoint			= "TapirTakedown"
-	TakedownPistolActionPoint	= "TapirTakedownPistol"
+	TakedownActionPoint			= "ReserveActionPointTakedown"
+	TakedownPistolActionPoint	= "ReserveActionPointTakedownPistol"
 	ReserveType = TakedownActionPoint
 	NumPoints = 1
 }

@@ -1,0 +1,10 @@
+
+doesn't support SnapShot
+Cinematic Camera will come later
+
+compatbility
+overrides XComGameState_Effect
+
+contains instructions for solving mod override conflict
+
+note: if you are using another mod, which allows you to equip two primary weapons at once on the same soldier, this ability may bug out

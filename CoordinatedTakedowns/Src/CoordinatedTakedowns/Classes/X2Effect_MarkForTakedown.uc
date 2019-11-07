@@ -1,29 +1,21 @@
 class X2Effect_MarkForTakedown extends X2Effect_Persistent;
 
-//var name AbilityToActivate;   //  ability to activate when the covering fire check is matched
-								//		note: not needed, because the weapon specific actions points filter the appropriate shot to activate
 var bool bPreEmptiveFire;		//	controls whether the marking soldier should fire before the triggering soldier
 
-function RegisterForEvents(XComGameState_Effect EffectGameState)
-{
-	local X2EventManager				EventMgr;
-	local Object						EffectObj;
-	local XComGamestate_MarkForTakedown	MarkState;
+function RegisterForEvents(XComGameState_Effect EffectGameState){
+	local X2EventManager						EventMgr;
+	local Object								EffectObj;
+	local XComGameState_Effect_MarkForTakedown	TakedownState; //rewrite the class type to your own, if you are solving a mod conflict
 
 	EventMgr = `XEVENTMGR;
-	EffectObj = EffectGameState;
-	MarkState = XComGamestate_MarkForTakedown(EffectGameState);
-
-	if(MarkState == none){
-		`RedScreen("XComGamestate_MarkForTakedown: GameState reference casting failed");
-	}else{
-		EventMgr.RegisterForEvent(EffectObj, 'AbilityActivated', MarkState.MarkTriggerCheck, ELD_OnStateSubmitted);
-	}
+	TakedownState = XComGameState_Effect_MarkForTakedown(EffectGameState); //rewrite the class type to your own, if you are solving a mod conflict
+	EffectObj = TakedownState;
+	EventMgr.RegisterForEvent(EffectObj, 'AbilityActivated', TakedownState.TakedownTriggerCheck, ELD_OnStateSubmitted);
 }
 
 DefaultProperties
 {
-	bPreEmptiveFire = false
+	bPreEmptiveFire = false	//better on false, because you can manually select a unit with shredder or holo target to definitely fire first
 	//inherited
 	iNumTurns = 1
 	EffectName = "MarkedForTakedownEffect"	// Used to identify the effect for purposes of stacking with other effects.
