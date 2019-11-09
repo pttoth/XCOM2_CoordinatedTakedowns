@@ -8,6 +8,8 @@ class X2Ability_CoordinatedTakedown
 static function array<X2DataTemplate> CreateTemplates()
 {
 	local array<X2DataTemplate> Templates;
+
+	`Log("CoordinatedTakedowns: X2Ability_CoordinatedTakedown: CreateTemplates() called");
 	Templates.AddItem(AddMarkForTakedownAbility());
 	Templates.AddItem(AddMarkForTakedownSniperAbility());
 	Templates.AddItem(AddMarkForTakedownPistolAbility());
@@ -21,8 +23,8 @@ static function X2AbilityTemplate CreateTakedownCommonProperties(name AbilityNam
 //used variables	
 	local X2AbilityTemplate                 Template;	
 	local X2AbilityCost_Ammo                AmmoCost;
-	local X2Condition_UnitProperty          ConcealedCondition;
-	local X2Effect_SetUnitValue             UnitValueEffect;
+	//local X2Condition_UnitProperty          ConcealedCondition;
+	//local X2Effect_SetUnitValue             UnitValueEffect;
 	local X2Effect_MarkForTakedown			TakedownMarkEffect;			//shooting checks whether this effect is on the targets
 	local X2Condition_UnitEffects           SuppressedCondition;
 	local X2Condition_Visibility			VisibilityCondition;
@@ -206,7 +208,7 @@ static function X2AbilityTemplate AddMarkForTakedownPistolAbility(){
 static function X2AbilityTemplate CreateTakedownShotCommonProperties(name AbilityName){
 	local X2AbilityTemplate								Template;	
 	local X2AbilityToHitCalc_StandardAim				StandardAim;
-	local X2Condition_UnitProperty						ShooterCondition;
+	//local X2Condition_UnitProperty						ShooterCondition;
 	local X2AbilityTarget_Single						SingleTarget;
 	local X2Effect_Knockback							KnockbackEffect;
 	local X2Condition_UnitEffectsWithAbilitySource		AbilitySourceCondition; //this check whether the target was marked by us

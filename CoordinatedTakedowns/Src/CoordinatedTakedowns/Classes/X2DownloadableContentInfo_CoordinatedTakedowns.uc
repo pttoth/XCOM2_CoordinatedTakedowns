@@ -21,65 +21,109 @@ var config array<name> CAPABLE_WEAPONS_SNIPER;
 /// </summary>
 static event OnPostTemplatesCreated()
 {
-	AddAbilitiesToPrimaries();
-	AddAbilitiesToPistols();
-	AddAbilitiesToSnipers();
+	//AddAbilitiesToPrimaries();
+	//AddAbilitiesToPistols();
+	//AddAbilitiesToSnipers();
 }
 
-static function AddAbilitiesToPrimaries(){
-	local X2ItemTemplateManager				ItemManager;
-	local X2WeaponTemplate					WeaponTemplate;
-	local name								WeaponName;
+//-----
+//fetches all difficulty-variants of 'WeaponName' and adds the abilities to all of them
+//-----
+static function AddAbilitiesToWeapon(X2ItemTemplateManager		ItemMgr,
+										  name							WeaponName,
+										  array<name> 					AbilityNames)
+{
+	local array<X2DataTemplate>		WeaponDataTemplateDifficulties;	//multiple difficulty templates per weapon
+	local X2DataTemplate				WeaponDataTemplate;
+	local X2WeaponTemplate			WeaponTemplate;
+	local name							AbilityName;
+	local int							DifficultyVersionCount;
+
+	ItemMgr.FindDataTemplateAllDifficulties(WeaponName, WeaponDataTemplateDifficulties);
+
+	DifficultyVersionCount = WeaponDataTemplateDifficulties.Length;
+	if(0 == DifficultyVersionCount){
+		`Log("CoordinatedTakedowns: MISSING WEAPON " $ WeaponName $ ", skipping");
+	}else{
+		`Log("CoordinatedTakedowns: Adding abilities to " $ string(WeaponName));
+		foreach WeaponDataTemplateDifficulties(WeaponDataTemplate){
+			WeaponTemplate = X2WeaponTemplate(WeaponDataTemplate);
+			if(none == WeaponTemplate){
+				`Log("CoordinatedTakedowns: MISSING WEAPON TEMPLATE IN ARRAY:" $ WeaponName $ ", skipping");
+			}else{
+				foreach AbilityNames(AbilityName){
+					WeaponTemplate.Abilities.AddItem( AbilityName );
+				}
+			}
+		}
+		if(4 != DifficultyVersionCount){
+			`Log("CoordinatedTakedowns: WARNING: Invalid amount of difficulty-versions exist for weapon" 
+				$ string(WeaponName) $ "(" $ DifficultyVersionCount $ ")");
+		}
+	}
+}
+
+//-----
+static function AddAbilitiesToPrimaries()
+{
+	local X2ItemTemplateManager		ItemManager;
+	local name							WeaponName;
+	local array<name>					TakedownAbilities;
+
+	TakedownAbilities.AddItem('MarkForTakedown');
+	TakedownAbilities.AddItem('TakedownShot');
+
 	ItemManager = class'X2ItemTemplateManager'.static.GetItemTemplateManager();
+	if(none == ItemManager){
+		`Log("CoordinatedTakedowns: Could not fetch X2ItemTemplateManager!");
+		return;
+	}
 
 	foreach default.CAPABLE_WEAPONS_PRIMARY(WeaponName){
-		WeaponTemplate = X2WeaponTemplate( ItemManager.FindItemTemplate( WeaponName ) ); 
-
-		if( none == WeaponTemplate){
-			`Log("CoordinatedTakedowns: MISSING WEAPON " $ WeaponName $ ", skipping");
-		}else{
-			`Log("CoordinatedTakedowns: Added abilities to " $ string(WeaponName));
-			WeaponTemplate.Abilities.AddItem( 'MarkForTakedown' );
-			WeaponTemplate.Abilities.AddItem( 'TakedownShot' );
-		}
+		AddAbilitiesToWeapon(ItemManager, WeaponName, TakedownAbilities);
 	}
 }
 
-static function AddAbilitiesToPistols(){
-	local X2ItemTemplateManager				ItemManager;
-	local X2WeaponTemplate					WeaponTemplate;
-	local name								WeaponName;
+//-----
+static function AddAbilitiesToPistols()
+{
+	local X2ItemTemplateManager		ItemManager;
+	local name							WeaponName;
+	local array<name>					TakedownAbilities;
+
+	TakedownAbilities.AddItem('MarkForTakedownPistol');
+	TakedownAbilities.AddItem('TakedownShotPistol');
+
 	ItemManager = class'X2ItemTemplateManager'.static.GetItemTemplateManager();
+	if(none == ItemManager){
+		`Log("CoordinatedTakedowns: Could not fetch X2ItemTemplateManager!");
+		return;
+	}
 
 	foreach default.CAPABLE_WEAPONS_PISTOL(WeaponName){
-		WeaponTemplate = X2WeaponTemplate( ItemManager.FindItemTemplate( WeaponName ) ); 
-		if( none == WeaponTemplate){
-			`Log("CoordinatedTakedowns: MISSING WEAPON " $ string(WeaponName) $ ", skipping");
-		}else{
-			`Log("CoordinatedTakedowns: Added abilities to " $ string(WeaponName));
-			WeaponTemplate.Abilities.AddItem( 'MarkForTakedownPistol' );
-			WeaponTemplate.Abilities.AddItem( 'TakedownShotPistol' );
-		}
+		AddAbilitiesToWeapon(ItemManager, WeaponName, TakedownAbilities);
 	}
 }
 
-static function AddAbilitiesToSnipers(){
-	local X2ItemTemplateManager				ItemManager;
-	local X2WeaponTemplate					WeaponTemplate;
-	local name								WeaponName;
+//-----
+static function AddAbilitiesToSnipers()
+{
+	local X2ItemTemplateManager		ItemManager;
+	local name							WeaponName;
+	local array<name>					TakedownAbilities;
+
+	TakedownAbilities.AddItem('MarkForTakedownSniper');
+	TakedownAbilities.AddItem('TakedownShot');
+
 	ItemManager = class'X2ItemTemplateManager'.static.GetItemTemplateManager();
+	if(none == ItemManager){
+		`Log("CoordinatedTakedowns: Could not fetch X2ItemTemplateManager!");
+		return;
+	}
 
 	foreach default.CAPABLE_WEAPONS_SNIPER(WeaponName){
-		WeaponTemplate = X2WeaponTemplate( ItemManager.FindItemTemplate( WeaponName ) );
-
-		if( none == WeaponTemplate){
-			`Log("CoordinatedTakedowns: MISSING WEAPON " $ WeaponName $ ", skipping");
-		}else{
-			`Log("CoordinatedTakedowns: Added abilities to " $ string(WeaponName));
-			WeaponTemplate.Abilities.AddItem( 'MarkForTakedownSniper' );
-			WeaponTemplate.Abilities.AddItem( 'TakedownShot' );
-		}
-	}
+		AddAbilitiesToWeapon(ItemManager, WeaponName, TakedownAbilities);
+	}	
 }
 
 //------------------------------------------------------------------------------------------------------------------
@@ -110,7 +154,8 @@ static event InstallNewCampaign(XComGameState StartState)
 /// Called just before the player launches into a tactical a mission while this DLC / Mod is installed.
 /// Allows dlcs/mods to modify the start state before launching into the mission
 /// </summary>
-static event OnPreMission(XComGameState StartGameState, XComGameState_MissionSite MissionState)
+static event OnPreMission(XComGameState StartGameState,
+								XComGameState_MissionSite MissionState)
 {}
 
 /// <summary>
@@ -168,7 +213,11 @@ static function bool AbilityTagExpandHandler(string InString, out string OutStri
 /// Called from XComGameState_Unit:GatherUnitAbilitiesForInit after the game has built what it believes is the full list of
 /// abilities for the unit based on character, class, equipment, et cetera. You can add or remove abilities in SetupData.
 /// </summary>
-static function FinalizeUnitAbilitiesForInit(XComGameState_Unit UnitState, out array<AbilitySetupData> SetupData, optional XComGameState StartState, optional XComGameState_Player PlayerState, optional bool bMultiplayerDisplay)
+static function FinalizeUnitAbilitiesForInit(XComGameState_Unit UnitState, 
+													out array<AbilitySetupData> SetupData,
+													optional XComGameState StartState,
+													optional XComGameState_Player PlayerState,
+													optional bool bMultiplayerDisplay)
 {}
 
 defaultProperties

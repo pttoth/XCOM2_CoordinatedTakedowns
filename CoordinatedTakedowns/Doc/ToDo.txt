@@ -7,4 +7,38 @@ find out how the crash occured before with GameStates
 	could not seem to reproduce
 	
 
+find out if its better to add Takedown to EVERY weapon with StandardShot and variants
+	(see evac-all where it adds it to every char with the evac ability)
 
+
+
+test notes:
+	currently doesn't add Takedown abilities to templates across all difficulties
+		only Commander difficulty is available
+-----
+	multiple soldiers (B,C) have active marks
+	soldier A does a step-out shot and kills enemy
+	B,C would shoot, but won't (target is dead)
+	a smaller lag spike happens
+	A doesn't step back into cover
+	game continues
+	--
+	may need a custom visualization function to solve this
+-----
+	soldier doesn't always end turn after marking
+		need further investigation
+		---
+		first mark works
+		second only end turn after third try
+		third mark ends turn after second try
+		--
+		case:	different targets or the same ?
+		--
+		marks that don't end turn seem not to trigger after an offensive action
+		
+-----		
+	where's the crash ??????
+		was it solved in the past ??
+		
+		
+		

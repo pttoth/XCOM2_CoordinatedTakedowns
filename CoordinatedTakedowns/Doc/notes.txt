@@ -1,0 +1,28 @@
+check this:
+	LW2
+		X2DownloadableContentInfo
+			/// <summary>
+			/// Called when the player completes a mission while this DLC / Mod is installed.
+			/// </summary>
+			static event OnPostMission()
+			{
+
+				class'XComGameState_LWListenerManager'.static.RefreshListeners();
+
+				UpdateBlackMarket();
+
+				`LWSQUADMGR.UpdateSquadPostMission(, true); // completed mission
+
+				`LWOUTPOSTMGR.UpdateOutpostsPostMission();
+			}
+Template.Abilities.AddiTem('StandardShot');
+Template.Abilities.AddItem('SniperStandardFire');
+Template.Abilities.AddiTem('PistolStandardShot');
+
+
+-------------------------------------------------------------------------------------------
+Long War interesting events
+	'CleanupTacticalMission'
+	'GetLWVersion'
+	'AbilityActivated'
+	
