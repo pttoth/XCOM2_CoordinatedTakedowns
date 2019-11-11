@@ -1,0 +1,19 @@
+//---------------------------------------------------------------------------------------
+//  FILE:    CTGlobals.uci
+//  AUTHOR:  Tapir
+//  PURPOSE: Macro definitions
+//---------------------------------------------------------------------------------------
+
+`define CTUDEB(msg) \
+	class'CTUtilities'.static.Debug(`msg)
+	
+`define CTULOG(msg) \
+	class'CTUtilities'.static.Log(`msg)
+
+`define CTUWARN(msg) \
+	class'CTUtilities'.static.Warning(`msg)
+
+`define CTUERR(msg) \
+	class'CTUtilities'.static.Error(`msg)
+
+`define CTU class'CTUtilities'.static

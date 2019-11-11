@@ -32,6 +32,12 @@
     <Content Include="Config\XComEditor.ini" />
     <Content Include="Config\XComEngine.ini" />
     <Content Include="Config\XComGame.ini" />
+    <Content Include="Src\CoordinatedTakedowns\Classes\CTGlobals.uci">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\CoordinatedTakedowns\Classes\CTUtilities.uc">
+      <SubType>Content</SubType>
+    </Content>
     <Content Include="Src\CoordinatedTakedowns\Classes\X2Ability_CoordinatedTakedown.uc">
       <SubType>Content</SubType>
     </Content>

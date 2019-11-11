@@ -1,15 +1,19 @@
 class X2Ability_CoordinatedTakedown
-		extends X2Ability 
+		extends X2Ability
+		dependson(CTUtilities)
 		config(CoordinatedTakedowns);
+
+`include (CoordinatedTakedowns/Src/CoordinatedTakedowns/Classes/CTGlobals.uci)
 
 //------------------------------------------------------------------
 //***********************CREATE TEMPLATES***************************
 //------------------------------------------------------------------
-static function array<X2DataTemplate> CreateTemplates()
+static function array<X2DataTemplate>
+CreateTemplates()
 {
 	local array<X2DataTemplate> Templates;
 
-	`Log("CoordinatedTakedowns: X2Ability_CoordinatedTakedown: CreateTemplates() called");
+	`CTUDEB("X2Ability_CoordinatedTakedown: CreateTemplates() called");
 	Templates.AddItem(AddMarkForTakedownAbility());
 	Templates.AddItem(AddMarkForTakedownSniperAbility());
 	Templates.AddItem(AddMarkForTakedownPistolAbility());
@@ -18,15 +22,16 @@ static function array<X2DataTemplate> CreateTemplates()
 	return Templates;
 }
 
-static function X2AbilityTemplate CreateTakedownCommonProperties(name AbilityName)
+static function X2AbilityTemplate
+CreateTakedownCommonProperties(name AbilityName)
 {
 //used variables	
-	local X2AbilityTemplate                 Template;	
-	local X2AbilityCost_Ammo                AmmoCost;
-	//local X2Condition_UnitProperty          ConcealedCondition;
-	//local X2Effect_SetUnitValue             UnitValueEffect;
-	local X2Effect_MarkForTakedown			TakedownMarkEffect;			//shooting checks whether this effect is on the targets
-	local X2Condition_UnitEffects           SuppressedCondition;
+	local X2AbilityTemplate					Template;
+	local X2AbilityCost_Ammo				AmmoCost;
+	//local X2Condition_UnitProperty			ConcealedCondition;
+	//local X2Effect_SetUnitValue				UnitValueEffect;
+	local X2Effect_MarkForTakedown			TakedownMarkEffect;		//shooting checks whether this effect is on the targets
+	local X2Condition_UnitEffects			SuppressedCondition;
 	local X2Condition_Visibility			VisibilityCondition;
 
 	`CREATE_X2ABILITY_TEMPLATE(Template, AbilityName);
@@ -47,7 +52,7 @@ static function X2AbilityTemplate CreateTakedownCommonProperties(name AbilityNam
 //has ammo
 	AmmoCost = new class'X2AbilityCost_Ammo';
 	AmmoCost.iAmmo = 1;
-	AmmoCost.bFreeCost = true;                  //  ammo is consumed by the shot, not by this, but this should verify ammo is available
+	AmmoCost.bFreeCost = true;			//  ammo is consumed by the shot, not by this, but this should verify ammo is available
 	Template.AbilityCosts.AddItem(AmmoCost);
 //is not suppressed
 	SuppressedCondition = new class'X2Condition_UnitEffects';
@@ -126,7 +131,10 @@ static function X2AbilityTemplate AddMarkForTakedownAbility(){
 //has ActionPoints
 	ActionPointCost = new class'X2AbilityCost_ActionPoints';
 	ActionPointCost.bConsumeAllPoints = true;   //  this will guarantee the unit has at least 1 action point
-	ActionPointCost.bFreeCost = true;           //  ReserveActionPoints effect will take all action points away
+
+	//If bFreeCost = true, then ApplyCost should do nothing, but CanAfford will still check the requirements.
+	ActionPointCost.bFreeCost = true;	//  ReserveActionPoints effect will take all action points away instead
+
 	ActionPointCost.DoNotConsumeAllEffects.Length = 0;
 	ActionPointCost.DoNotConsumeAllSoldierAbilities.Length = 0;
 	Template.AbilityCosts.AddItem(ActionPointCost);

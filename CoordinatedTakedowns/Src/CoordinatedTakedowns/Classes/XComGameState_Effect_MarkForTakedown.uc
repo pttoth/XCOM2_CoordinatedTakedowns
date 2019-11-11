@@ -5,22 +5,27 @@
 //				TakedownCheck watches the onAbilityActivated event and triggers the takedown if conditions are met
 //---------------------------------------------------------------------------------------
 
-class XComGameState_Effect_MarkForTakedown extends XComGameState_Effect
+class XComGameState_Effect_MarkForTakedown
+	extends XComGameState_Effect
 	//native(Core) 
-	dependson(X2Effect);
+	dependson(X2Effect, CTUtilities);
+
+`include (CoordinatedTakedowns/Src/CoordinatedTakedowns/Classes/CTGlobals.uci)
 
 //in case of override conflict with your own mod, copy this function into your own overriding class
-function EventListenerReturn TakedownTriggerCheck(	Object		  EventData, 
-													Object		  EventSource, 
-													XComGameState GameState, 
-													Name		  EventID){
-	local XComGameState_Unit 			AttackingUnit; // needed for checking whether the triggering action is offensive
-	local XComGameState_Unit			MarkingUnit, MarkedUnit; // the shooter and the target
-	local XComGameStateHistory 			History;					
-	local X2Effect_MarkForTakedown 		MarkEffect;
-	local StateObjectReference 			AbilityRef;
-	local XComGameState_Ability 		AbilityState;
-	local XComGameStateContext_Ability 	AbilityContext;
+function EventListenerReturn
+TakedownTriggerCheck(Object			EventData,
+					 Object			EventSource,
+					 XComGameState	GameState,
+					 Name			EventID)
+{
+	local XComGameState_Unit				AttackingUnit; // needed for checking whether the triggering action is offensive
+	local XComGameState_Unit				MarkingUnit, MarkedUnit; // the shooter and the target
+	local XComGameStateHistory				History;
+	local X2Effect_MarkForTakedown			MarkEffect;
+	local StateObjectReference				AbilityRef;
+	local XComGameState_Ability				AbilityState;
+	local XComGameStateContext_Ability		AbilityContext;
 
 	AbilityContext = XComGameStateContext_Ability(GameState.GetContext());
 	if (AbilityContext != none){
@@ -46,19 +51,21 @@ function EventListenerReturn TakedownTriggerCheck(	Object		  EventData,
 
 			if (MarkEffect.bPreEmptiveFire){
 				//  for pre emptive fire, only process during the interrupt step
-				if (AbilityContext.InterruptionStatus != eInterruptionStatus_Interrupt)
+				if (AbilityContext.InterruptionStatus != eInterruptionStatus_Interrupt){
 					return ELR_NoInterrupt;
+				}
 			}else{
 				//  for non-pre emptive fire, don't process during the interrupt step
-				if (AbilityContext.InterruptionStatus == eInterruptionStatus_Interrupt)
+				if (AbilityContext.InterruptionStatus == eInterruptionStatus_Interrupt){
 					return ELR_NoInterrupt;
+				}
 			}
 
 			AbilityRef = MarkingUnit.FindAbility('TakedownShot');
 			AbilityState = XComGameState_Ability(History.GetGameStateForObjectID(AbilityRef.ObjectID));
 			if (AbilityState != none){
 				if (AbilityState.CanActivateAbilityForObserverEvent(MarkedUnit) == 'AA_Success'){
-					AbilityContext = class'XComGameStateContext_Ability'.static.BuildContextFromAbility(AbilityState, MarkedUnit.ObjectID);
+					AbilityContext = class'XComGameStateContext_Ability'.static.BuildContextFromAbility( AbilityState, MarkedUnit.ObjectID);
 					if( AbilityContext.Validate() ){
 						`TACTICALRULES.SubmitGameStateContext(AbilityContext);
 					}

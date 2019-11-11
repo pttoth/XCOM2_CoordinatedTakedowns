@@ -1,8 +1,14 @@
-class X2Effect_MarkForTakedown extends X2Effect_Persistent;
+class X2Effect_MarkForTakedown
+		extends X2Effect_Persistent
+		dependson(CTUtilities);
+
+`include (CoordinatedTakedowns/Src/CoordinatedTakedowns/Classes/CTGlobals.uci)
 
 var bool bPreEmptiveFire;		//	controls whether the marking soldier should fire before the triggering soldier
 
-function RegisterForEvents(XComGameState_Effect EffectGameState){
+//---------------------------------------------------------------------------
+function RegisterForEvents(XComGameState_Effect EffectGameState)
+{
 	local X2EventManager						EventMgr;
 	local Object								EffectObj;
 	local XComGameState_Effect_MarkForTakedown	TakedownState; //rewrite the class type to your own, if you are solving a mod conflict
@@ -11,6 +17,7 @@ function RegisterForEvents(XComGameState_Effect EffectGameState){
 	TakedownState = XComGameState_Effect_MarkForTakedown(EffectGameState); //rewrite the class type to your own, if you are solving a mod conflict
 	EffectObj = TakedownState;
 	EventMgr.RegisterForEvent(EffectObj, 'AbilityActivated', TakedownState.TakedownTriggerCheck, ELD_OnStateSubmitted);
+	`CTUDEB("Registered for 'AbilityActivated' event");
 }
 
 DefaultProperties
@@ -21,6 +28,7 @@ DefaultProperties
 	EffectName = "MarkedForTakedownEffect"	// Used to identify the effect for purposes of stacking with other effects.
 	bDupeForSameSourceOnly = true		// when adding the effect to a target, any similar effects coming from a different source are ignored when checking for a pre-existing effect
 	DuplicateResponse = eDupe_Ignore
+	//DuplicateResponse = eDupe_Allow
 	bApplyOnHit = true
 	bApplyOnMiss = true
 	bRemoveWhenSourceDies = true

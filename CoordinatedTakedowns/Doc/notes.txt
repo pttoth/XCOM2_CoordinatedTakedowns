@@ -21,6 +21,25 @@ Template.Abilities.AddiTem('PistolStandardShot');
 
 
 -------------------------------------------------------------------------------------------
+MarkForTakedown néha nem aktivál (azaz inkább nem fejezi be a kört, mintha semmit se cisnálna)
+	ebbe nézz bele, lehet hogy elvezet a hibához:
+		X2Ability
+			TypicalMoveEndAbility_BuildGameState()
+			TypicalAbility_BuildGameState
+		commentek említenek ilyet, hogy a cost melyikben alkalmazódik
+
+		jelenleg ezt használod
+			TypicalAbility_FillOutGameState
+
+		ez is lehet kell
+			ApplyEffectsToTarget
+			ActivationFlyOver_PostBuildVisualization
+			TypicalAbility_BuildVisualization
+			OverwatchShot_BuildVisualization
+			TypicalAbility_BuildInterruptGameState	//for visuals
+
+
+-------------------------------------------------------------------------------------------
 Long War interesting events
 	'CleanupTacticalMission'
 	'GetLWVersion'
