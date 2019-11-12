@@ -11,10 +11,10 @@ function RegisterForEvents(XComGameState_Effect EffectGameState)
 {
 	local X2EventManager						EventMgr;
 	local Object								EffectObj;
-	local XComGameState_Effect_MarkForTakedown	TakedownState; //rewrite the class type to your own, if you are solving a mod conflict
+	local XComGameState_Effect_MarkForTakedown	TakedownState; //TODO: rewrite the class type to your own, if you are solving a mod conflict
 
 	EventMgr = `XEVENTMGR;
-	TakedownState = XComGameState_Effect_MarkForTakedown(EffectGameState); //rewrite the class type to your own, if you are solving a mod conflict
+	TakedownState = XComGameState_Effect_MarkForTakedown(EffectGameState); //TODO: rewrite the class type to your own, if you are solving a mod conflict
 	EffectObj = TakedownState;
 	EventMgr.RegisterForEvent(EffectObj, 'AbilityActivated', TakedownState.TakedownTriggerCheck, ELD_OnStateSubmitted);
 	`CTUDEB("Registered for 'AbilityActivated' event");

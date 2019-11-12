@@ -49,12 +49,12 @@ CreateTakedownCommonProperties(name AbilityName)
 //Conditions:
 //user alive
 	Template.AbilityShooterConditions.AddItem(default.LivingShooterProperty);
-//has ammo
+//user has ammo
 	AmmoCost = new class'X2AbilityCost_Ammo';
 	AmmoCost.iAmmo = 1;
 	AmmoCost.bFreeCost = true;			//  ammo is consumed by the shot, not by this, but this should verify ammo is available
 	Template.AbilityCosts.AddItem(AmmoCost);
-//is not suppressed
+//user is not suppressed
 	SuppressedCondition = new class'X2Condition_UnitEffects';
 	SuppressedCondition.AddExcludeEffect(class'X2Effect_Suppression'.default.EffectName, 'AA_UnitIsSuppressed');
 	Template.AbilityShooterConditions.AddItem(SuppressedCondition);
@@ -71,11 +71,16 @@ CreateTakedownCommonProperties(name AbilityName)
 	Template.AbilityTargetStyle = default.SimpleSingleTarget; // Only at single targets that are in range.
 	Template.TargetingMethod = class'X2TargetingMethod_OverTheShoulder';
 	//Template.bUsesFiringCamera = true; //needed?
+
 //TODO: make some visual feedback, check how overwatch displays the popup text overhead
 	//	Template.CinescriptCameraType = "StandardGunFiring"; 
 	//note: X2Effect_MarkForTakedown takes care of effect application regardless of hit/miss
-	Template.AbilityToHitCalc = default.SimpleStandardAim;
-	Template.AbilityToHitOwnerOnMissCalc = default.SimpleStandardAim;
+	Template.AbilityToHitCalc = default.DeadEye;
+
+	//Template.AbilityToHitOwnerOnMissCalc = default.SimpleStandardAim;		//TODO: check, that this is
+																			// X2AbilityTemplate says: 		"If !none, a miss on the main target will apply this chance to hit on the target's owner."
+
+
 //sets up ConcealedOverwatch if soldier is concealed(nnope, concealed OW works without this code)
 /*	
 	ConcealedCondition = new class'X2Condition_UnitProperty';

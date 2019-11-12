@@ -40,6 +40,16 @@ PrintTakedownActors(XComGameState_Unit Attacker,
 	}
 }
 
+function
+PrintInterruptionStatus(EInterruptionStatus status)
+{
+	if(status == eInterruptionStatus_None){				`CTUDEB("InterruptionStatus: eInterruptionStatus_None");
+	}else if(status == eInterruptionStatus_Interrupt){	`CTUDEB("InterruptionStatus: eInterruptionStatus_Interrupt");
+	}else if(status == eInterruptionStatus_Resume){		`CTUDEB("InterruptionStatus: eInterruptionStatus_Resume");
+	}else{												`CTUWARN("InterruptionStatus: UNKNOWN");
+	}
+}
+
 //in case of override conflict with your own mod, copy this function into your own overriding class
 function EventListenerReturn
 TakedownTriggerCheck(Object			EventData,
@@ -47,6 +57,19 @@ TakedownTriggerCheck(Object			EventData,
 					 XComGameState	GameState,
 					 Name			EventID)
 {
+/*
+	local XComGameStateContext_Ability		AbilityContext;
+
+	AbilityContext = XComGameStateContext_Ability(GameState.GetContext());
+
+	if(none == AbilityContext){
+		`CTUERR("TakedownTriggerCheck couldn't cast GameState param to AbilityContext");
+	}
+
+	return ELR_NoInterrupt;
+*/
+//--------------------------------------------------
+
 	local XComGameState_Unit				AttackingUnit; // needed for checking whether the triggering action is offensive
 	local XComGameState_Unit				MarkingUnit, MarkedUnit; // the shooter and the target
 	local XComGameStateHistory				History;
@@ -54,6 +77,10 @@ TakedownTriggerCheck(Object			EventData,
 	local StateObjectReference				AbilityRef, EmptyRef;		//TODO: check what ObjectID EmptyRef has
 	local XComGameState_Ability				AbilityState;
 	local XComGameStateContext_Ability		AbilityContext;
+
+	local name								AbilityCanActivateResult;
+
+	//TODO: 	find a way to identify non-hostile actions as early as you can to avoid unnecessary log spam
 
 	`CTUDEB("TakedownTriggerCheck running");
 	AbilityContext = XComGameStateContext_Ability(GameState.GetContext());
@@ -95,6 +122,8 @@ TakedownTriggerCheck(Object			EventData,
 				return ELR_NoInterrupt;
 			}
 
+			PrintInterruptionStatus(AbilityContext.InterruptionStatus);
+
 			if (MarkEffect.bPreEmptiveFire){
 				`CTUDEB("'bPreEmptiveFire' is on");
 				//  for pre emptive fire, only process during the interrupt step
@@ -120,9 +149,15 @@ TakedownTriggerCheck(Object			EventData,
 			}
 
 			if (AbilityState != none){
-				if (AbilityState.CanActivateAbilityForObserverEvent(MarkedUnit) == 'AA_Success'){
+				AbilityCanActivateResult = AbilityState.CanActivateAbilityForObserverEvent(MarkedUnit);
+				`CTUDEB("AbilityCanActivateResult: " $ AbilityCanActivateResult);
+				if (AbilityCanActivateResult == 'AA_Success'){
 					`CTUDEB("AbilityState activation condition check PASSED");	//TODO: should this new context be for the Marked unit ????
-					AbilityContext = class'XComGameStateContext_Ability'.static.BuildContextFromAbility( AbilityState, MarkedUnit.ObjectID);
+
+					AbilityContext = class'XComGameStateContext_Ability'.static.
+											BuildContextFromAbility(AbilityState, MarkedUnit.ObjectID ); //TODO: check this function!
+
+
 					if( AbilityContext.Validate() ){
 						`TACTICALRULES.SubmitGameStateContext(AbilityContext);
 					}else{
@@ -135,4 +170,5 @@ TakedownTriggerCheck(Object			EventData,
 		}
 	}
 	return ELR_NoInterrupt;
+
 }
