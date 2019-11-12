@@ -27,7 +27,7 @@ static function
 Debug(string message)
 {
 	local string txt;
-	txt = "CoordinatedTakedowns Debug:" $ message;
+	txt = "CoordinatedTakedowns Debug:  " $ message;
 	if(default.CT_DEBUG_ENABLE_PRINT){
 		`Log(txt);
 	}
@@ -40,7 +40,7 @@ static function
 Log(string message)
 {
 	local string txt;
-	txt = "CoordinatedTakedowns Log:" $ message;
+	txt = "CoordinatedTakedowns Log:  " $ message;
 	if(default.CT_LOG_ENABLE_PRINT){
 		`Log(txt);
 	}
@@ -53,7 +53,7 @@ static function
 Warning(string message)
 {
 	local string txt;
-	txt = "CoordinatedTakedowns WARNING:" $ message;
+	txt = "CoordinatedTakedowns WARNING:  " $ message;
 	if(default.CT_WARNING_ENABLE_PRINT){
 		`Log(txt);
 	}
@@ -66,7 +66,7 @@ static function
 Error(string message)
 {
 	local string txt;
-	txt = "CoordinatedTakedowns ERROR:" $ message;
+	txt = "CoordinatedTakedowns ERROR:  " $ message;
 	if(default.CT_ERROR_ENABLE_PRINT){
 		`Log(txt);
 	}

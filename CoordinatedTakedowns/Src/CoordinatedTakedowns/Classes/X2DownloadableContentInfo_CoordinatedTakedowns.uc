@@ -32,9 +32,10 @@ static event OnPostTemplatesCreated()
 //-----
 //fetches all difficulty-variants of 'WeaponName' and adds the abilities to all of them
 //-----
-static function AddAbilitiesToWeapon(X2ItemTemplateManager		ItemMgr,
-									 name						WeaponName,
-									 array<name>				AbilityNames)
+static function
+AddAbilitiesToWeapon(X2ItemTemplateManager		ItemMgr,
+					 name						WeaponName,
+					 array<name>				AbilityNames)
 {
 	local array<X2DataTemplate>		WeaponDataTemplateDifficulties;	//multiple difficulty templates per weapon
 	local X2DataTemplate			WeaponDataTemplate;
@@ -46,13 +47,13 @@ static function AddAbilitiesToWeapon(X2ItemTemplateManager		ItemMgr,
 
 	DifficultyVersionCount = WeaponDataTemplateDifficulties.Length;
 	if(0 == DifficultyVersionCount){
-		`CTUWARN("MISSING WEAPON:" $ WeaponName $ ", skipping");
+		`CTUWARN("missing weapon:" $ WeaponName $ ", skipping");
 	}else{
 		`CTULOG("Adding abilities to " $ string(WeaponName));
 		foreach WeaponDataTemplateDifficulties(WeaponDataTemplate){
 			WeaponTemplate = X2WeaponTemplate(WeaponDataTemplate);
 			if(none == WeaponTemplate){
-				`CTUERR("MISSING WEAPON TEMPLATE IN ARRAY:" $ WeaponName $ ", skipping");
+				`CTUERR("missing weapon template in array:" $ WeaponName $ ", skipping");
 			}else{
 				foreach AbilityNames(AbilityName){
 					WeaponTemplate.Abilities.AddItem( AbilityName );
@@ -67,7 +68,8 @@ static function AddAbilitiesToWeapon(X2ItemTemplateManager		ItemMgr,
 }
 
 //-----
-static function AddAbilitiesToPrimaries()
+static function
+AddAbilitiesToPrimaries()
 {
 	local X2ItemTemplateManager		ItemManager;
 	local name						WeaponName;
@@ -87,7 +89,8 @@ static function AddAbilitiesToPrimaries()
 }
 
 //-----
-static function AddAbilitiesToPistols()
+static function
+AddAbilitiesToPistols()
 {
 	local X2ItemTemplateManager		ItemManager;
 	local name						WeaponName;
@@ -107,7 +110,8 @@ static function AddAbilitiesToPistols()
 }
 
 //-----
-static function AddAbilitiesToSnipers()
+static function
+AddAbilitiesToSnipers()
 {
 	local X2ItemTemplateManager		ItemManager;
 	local name						WeaponName;

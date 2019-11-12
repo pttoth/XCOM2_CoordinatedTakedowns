@@ -108,6 +108,7 @@ CreateTakedownCommonProperties(name AbilityName)
 
 //Set it up in the game
 	Template.BuildNewGameStateFn = TypicalAbility_BuildGameState;
+//	Template.BuildVisualizationFn = TypicalAbility_BuildVisualization;	//uses a shot animation for marking, replace this
 
 	return Template;	
 }
@@ -116,7 +117,9 @@ CreateTakedownCommonProperties(name AbilityName)
 //------------------------------------------------------------------
 //***********************STANDARD WEAPONS***************************
 //------------------------------------------------------------------
-static function X2AbilityTemplate AddMarkForTakedownAbility(){
+static function X2AbilityTemplate
+AddMarkForTakedownAbility()
+{
 //used variables
 	local X2AbilityTemplate                 Template;
 	local X2Effect_ReserveActionPoints      ReserveActionPointsEffect;	//this will give us the special action points the shot needs
@@ -146,7 +149,9 @@ static function X2AbilityTemplate AddMarkForTakedownAbility(){
 //*************************SNIPER WEAPONS***************************
 //------------------------------------------------------------------
 
-static function X2AbilityTemplate AddMarkForTakedownSniperAbility(){
+static function X2AbilityTemplate
+AddMarkForTakedownSniperAbility()
+{
 	local X2AbilityTemplate                 Template;
 	local X2AbilityCost_ActionPoints		ActionPointCost;
 	local X2Effect_ReserveActionPoints      ReserveActionPointsEffect;	//this will give us the special action points the shot needs
@@ -179,7 +184,9 @@ static function X2AbilityTemplate AddMarkForTakedownSniperAbility(){
 //*************************PISTOL WEAPONS***************************
 //------------------------------------------------------------------
 
-static function X2AbilityTemplate AddMarkForTakedownPistolAbility(){
+static function X2AbilityTemplate
+AddMarkForTakedownPistolAbility()
+{
 	local X2AbilityTemplate                 Template;
 	local X2Effect_ReserveActionPoints      ReserveActionPointsEffect;	//this will give us the special action points the shot needs
 	local X2AbilityCost_ActionPoints        ActionPointCost;
@@ -213,7 +220,9 @@ static function X2AbilityTemplate AddMarkForTakedownPistolAbility(){
 
 
 
-static function X2AbilityTemplate CreateTakedownShotCommonProperties(name AbilityName){
+static function X2AbilityTemplate
+CreateTakedownShotCommonProperties(name AbilityName)
+{
 	local X2AbilityTemplate								Template;	
 	local X2AbilityToHitCalc_StandardAim				StandardAim;
 	//local X2Condition_UnitProperty						ShooterCondition;
@@ -287,7 +296,9 @@ static function X2AbilityTemplate CreateTakedownShotCommonProperties(name Abilit
 
 
 
-static function X2AbilityTemplate AddTakedownShotAbility(){
+static function X2AbilityTemplate
+AddTakedownShotAbility()
+{
 //used variables
 	local X2AbilityTemplate								Template;
 	local X2AbilityCost_Ammo							AmmoCost;
@@ -322,7 +333,8 @@ static function X2AbilityTemplate AddTakedownShotAbility(){
 //****************************PISTOLS*******************************
 //------------------------------------------------------------------
 
-static function X2AbilityTemplate AddTakedownShotPistolAbility()
+static function X2AbilityTemplate
+AddTakedownShotPistolAbility()
 {
 	//used variables
 	local X2AbilityTemplate						Template;
