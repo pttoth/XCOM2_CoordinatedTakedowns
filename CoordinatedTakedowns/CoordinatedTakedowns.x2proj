@@ -21,7 +21,7 @@
     <Content Include="Config\XComCoordinatedTakedowns.ini">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="Localization\XComCoordinatedTakedowns.int">
+    <Content Include="Localization\XComGame.int">
       <SubType>Content</SubType>
     </Content>
     <Content Include="ModDescription.txt">

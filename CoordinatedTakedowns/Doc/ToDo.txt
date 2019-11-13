@@ -13,8 +13,8 @@ find out if its better to add Takedown to EVERY weapon with StandardShot and var
 
 
 test notes:
-	currently doesn't add Takedown abilities to templates across all difficulties
-		only Commander difficulty is available
+-----
+	pistol takedown doesn't work
 -----
 	multiple soldiers (B,C) have active marks
 	soldier A does a step-out shot and kills enemy
@@ -25,28 +25,48 @@ test notes:
 	--
 	may need a custom visualization function to solve this
 -----
-	soldier doesn't always end turn after marking
-		need further investigation
-		---
-		first mark works
-		second only end turn after third try
-		third mark ends turn after second try
-		--
-		case:	different targets or the same ?
-		--
-		marks that don't end turn seem not to trigger after an offensive action
-
------
 	MarkForTakedown is available during viper bind
------
-	filter TakedownTriggerCheck errors more accurately
-		they trigger for everything (eg. movement)
+	probably TakedownShot too
 -----
 	seems the MarkEffect is still on the unit after a MarkShot
+		may just be, that active effects check the triggered Takedown shots too
+	see if it works with LW2 Command ability
+		mark a unit
+		trigger a takedown
+		give an action point to the marker
+		trigger another takedown
 
------		
+		shouldn't work (no more TakedownActionPoints reserved)
+-----
+	check if unreal allows assignment operators in if conditions
+		and remove yoda codes if not!
+-----
+	TakedownShotCommonProperties
+		remove return value
+		use 'out' parameter?
+-----
+	fix TakedownShot
+		eg. ability impairing conditions (stun, etc.) should disable it
+	
+-----
 	where's the crash ??????
 		was it solved in the past ??
-		
-		
-		
+-----	
+	check if suppression prevents marking
+-----
+	show ToHit percentage during aiming
+		has to rewrite deadeye aim so it will bring back the fail-on-miss bug
+-----
+	find special icons
+-----
+	display ability names in debug when processing takedowntriggercheck
+-----
+	find all TODO notes
+-----
+see
+	X2Condition_Stealth
+	X2Condition_UnitEffects
+	X2Condition_UnitInteractions
+	X2Condition_UnitProperty
+	X2Condition_UnitStatCheck
+	

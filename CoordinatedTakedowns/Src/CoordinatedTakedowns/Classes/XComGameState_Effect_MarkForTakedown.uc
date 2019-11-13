@@ -75,97 +75,110 @@ TakedownTriggerCheck(Object			EventData,
 	local XComGameStateHistory				History;
 	local X2Effect_MarkForTakedown			MarkEffect;
 	local StateObjectReference				AbilityRef, EmptyRef;		//TODO: check what ObjectID EmptyRef has
+	local XComGameState_Ability				TriggeringAbilityState;
 	local XComGameState_Ability				AbilityState;
 	local XComGameStateContext_Ability		AbilityContext;
 
 	local name								AbilityCanActivateResult;
 
-	//TODO: 	find a way to identify non-hostile actions as early as you can to avoid unnecessary log spam
-
-	`CTUDEB("TakedownTriggerCheck running");
 	AbilityContext = XComGameStateContext_Ability(GameState.GetContext());
-	if (AbilityContext != none){
-		History = `XCOMHISTORY;
-		AttackingUnit = class'X2TacticalGameRulesetDataStructures'.static.GetAttackingUnitState(GameState); //this checks whether the activated ability is offensive
-		MarkingUnit = XComGameState_Unit(
-							History.GetGameStateForObjectID(
-									ApplyEffectParameters.SourceStateObjectRef.ObjectID ) );
-		MarkedUnit = XComGameState_Unit(
-							History.GetGameStateForObjectID(
-									ApplyEffectParameters.TargetStateObjectRef.ObjectID ) );
+	if (none == AbilityContext){
+		`CTUERR("TakedownTriggerCheck(): Could not acquire AbilityContext!");
+		return ELR_NoInterrupt;
+	}
+	History = `XCOMHISTORY;
+	TriggeringAbilityState = XComGameState_Ability(
+									History.GetGameStateForObjectID(
+											AbilityContext.InputContext.AbilityRef.ObjectID));
+	if(TriggeringAbilityState == none){
+		`CTUDEB("TakedownTriggerCheck(): Could not acquire TriggeringAbilityState ref, skipping");
+		return ELR_NoInterrupt;
+	}
+	`CTUDEB("TakedownTriggerCheck(): Checking current ability: '" $ TriggeringAbilityState.GetMyTemplateName() $"'");
 
-		PrintTakedownActors(AttackingUnit, MarkingUnit, MarkedUnit);
+	AttackingUnit = class'X2TacticalGameRulesetDataStructures'.static.GetAttackingUnitState(GameState); //this checks whether the activated ability is offensive
+	if(none == AttackingUnit){
+		`CTUDEB("TakedownTriggerCheck(): Could not acquire 'AttackingUnit' ref, the ability in action is not offensive, skipping");
+		return ELR_NoInterrupt;
+	}
 
-		if( (none == AttackingUnit)
-			|| (none == MarkingUnit)
-			|| (none == MarkedUnit) )
-		{
-			`CTUERR("Could not acquire all of the units during TakedownTriggerCheck, skipping");
+	MarkingUnit = XComGameState_Unit(
+						History.GetGameStateForObjectID(
+								ApplyEffectParameters.SourceStateObjectRef.ObjectID ) );
+	MarkedUnit = XComGameState_Unit(
+						History.GetGameStateForObjectID(
+								ApplyEffectParameters.TargetStateObjectRef.ObjectID ) );
+
+	PrintTakedownActors(AttackingUnit, MarkingUnit, MarkedUnit);
+
+	if( (none == MarkingUnit)
+		|| (none == MarkedUnit) )
+	{
+		`CTUERR("TakedownTriggerCheck(): Could not acquire all of the units during TakedownTriggerCheck, skipping");
+		return ELR_NoInterrupt;
+	}
+
+	if (AttackingUnit.IsFriendlyUnit(MarkingUnit)){
+		`CTUDEB("TakedownTriggerCheck(): Attacking unit is friendly to Marking unit");
+		MarkEffect = X2Effect_MarkForTakedown(GetX2Effect());
+		if( MarkEffect == none ){
+			`CTUERR("TakedownTriggerCheck(): Could not acquire 'X2Effect_MarkForTakedown' reference from 'XComGameState_Effect_MarkForTakedown'");
+			return ELR_NoInterrupt;
+		}
+		//source unit owner			MarkingUnit.ControllingPlayer.ObjectID
+		//attacking unit owner		MarkedUnit.ControllingPlayer.ObjectID
+		//current player			`TACTICALRULES.GetCachedUnitActionPlayerRef().ObjectID
+
+		//only on player turn
+		if( (MarkingUnit.ControllingPlayer.ObjectID != MarkedUnit.ControllingPlayer.ObjectID)
+				&&(MarkingUnit.ControllingPlayer.ObjectID != `TACTICALRULES.GetCachedUnitActionPlayerRef().ObjectID) ) {
+			`CTUDEB("TakedownTriggerCheck(): Marking Unit is player unit, the Marked Target is not");
 			return ELR_NoInterrupt;
 		}
 
-		if (AttackingUnit.IsFriendlyUnit(MarkingUnit)){
-			`CTUDEB("Attacking unit is friendly to Marking unit");
-			MarkEffect = X2Effect_MarkForTakedown(GetX2Effect());
-			if( MarkEffect == none ){
-				`CTUERR("Could not acquire 'X2Effect_MarkForTakedown' reference from 'XComGameState_Effect_MarkForTakedown'");
+		PrintInterruptionStatus(AbilityContext.InterruptionStatus);
+
+		if (MarkEffect.bPreEmptiveFire){
+			`CTUDEB("TakedownTriggerCheck(): 'bPreEmptiveFire' is on");
+			//  for pre emptive fire, only process during the interrupt step
+			if (AbilityContext.InterruptionStatus != eInterruptionStatus_Interrupt){
 				return ELR_NoInterrupt;
 			}
-			//source unit owner			MarkingUnit.ControllingPlayer.ObjectID
-			//attacking unit owner		MarkedUnit.ControllingPlayer.ObjectID
-			//current player			`TACTICALRULES.GetCachedUnitActionPlayerRef().ObjectID
-
-			//only on player turn
-			if( (MarkingUnit.ControllingPlayer.ObjectID != MarkedUnit.ControllingPlayer.ObjectID)
-					&&(MarkingUnit.ControllingPlayer.ObjectID != `TACTICALRULES.GetCachedUnitActionPlayerRef().ObjectID) ) {
-				`CTUDEB("Marking Unit is player unit, the Marked Target is not");
+		}else{
+			`CTUDEB("TakedownTriggerCheck(): 'bPreEmptiveFire' is off");
+			//  for non-pre emptive fire, don't process during the interrupt step
+			if (AbilityContext.InterruptionStatus == eInterruptionStatus_Interrupt){
 				return ELR_NoInterrupt;
 			}
+		}
 
-			PrintInterruptionStatus(AbilityContext.InterruptionStatus);
+		AbilityRef = MarkingUnit.FindAbility('TakedownShot');
+		AbilityState = XComGameState_Ability(History.GetGameStateForObjectID(AbilityRef.ObjectID));
 
-			if (MarkEffect.bPreEmptiveFire){
-				`CTUDEB("'bPreEmptiveFire' is on");
-				//  for pre emptive fire, only process during the interrupt step
-				if (AbilityContext.InterruptionStatus != eInterruptionStatus_Interrupt){
-					return ELR_NoInterrupt;
+		if(EmptyRef == AbilityRef){
+			`CTUERR("TakedownTriggerCheck(): Could not acquire AbilityRef from MarkingUnit");
+		}
+		if(none == AbilityState){
+			`CTUERR("TakedownTriggerCheck(): Could not acquire AbilityState based on ObjectID");
+		}
+
+		if (AbilityState != none){
+			AbilityCanActivateResult = AbilityState.CanActivateAbilityForObserverEvent(MarkedUnit);
+			`CTUDEB("TakedownTriggerCheck(): AbilityCanActivateResult: " $ AbilityCanActivateResult);
+			if (AbilityCanActivateResult == 'AA_Success'){
+				`CTUDEB("TakedownTriggerCheck(): AbilityState activation condition check PASSED");	//TODO: should this new context be for the Marked unit ????
+
+				AbilityContext = class'XComGameStateContext_Ability'.static.
+										BuildContextFromAbility(AbilityState, MarkedUnit.ObjectID ); //TODO: check this function!
+
+
+				if( AbilityContext.Validate() ){
+					`TACTICALRULES.SubmitGameStateContext(AbilityContext);
+				}else{
+					`CTUERR("TakedownTriggerCheck(): Failed to validate AbilityContext for Marked unit");
 				}
 			}else{
-				`CTUDEB("'bPreEmptiveFire' is off");
-				//  for non-pre emptive fire, don't process during the interrupt step
-				if (AbilityContext.InterruptionStatus == eInterruptionStatus_Interrupt){
-					return ELR_NoInterrupt;
-				}
-			}
-
-			AbilityRef = MarkingUnit.FindAbility('TakedownShot');
-			AbilityState = XComGameState_Ability(History.GetGameStateForObjectID(AbilityRef.ObjectID));
-
-			if(EmptyRef == AbilityRef){
-				`CTUERR("Could not acquire AbilityRef from MarkingUnit");
-			}
-			if(none == AbilityState){
-				`CTUERR("Could not acquire AbilityState based on ObjectID");
-			}
-
-			if (AbilityState != none){
-				AbilityCanActivateResult = AbilityState.CanActivateAbilityForObserverEvent(MarkedUnit);
-				`CTUDEB("AbilityCanActivateResult: " $ AbilityCanActivateResult);
-				if (AbilityCanActivateResult == 'AA_Success'){
-					`CTUDEB("AbilityState activation condition check PASSED");	//TODO: should this new context be for the Marked unit ????
-
-					AbilityContext = class'XComGameStateContext_Ability'.static.
-											BuildContextFromAbility(AbilityState, MarkedUnit.ObjectID ); //TODO: check this function!
-
-
-					if( AbilityContext.Validate() ){
-						`TACTICALRULES.SubmitGameStateContext(AbilityContext);
-					}else{
-						`CTUERR("Failed to validate AbilityContext for Marked unit");
-					}
-				}else{
-					`CTUDEB("AbilityState activation condition check FAILED");
-				}
+				`CTUDEB("TakedownTriggerCheck(): AbilityState activation condition check FAILED");
 			}
 		}
 	}

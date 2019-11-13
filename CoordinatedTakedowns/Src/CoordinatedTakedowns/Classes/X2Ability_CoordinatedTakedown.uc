@@ -23,24 +23,23 @@ CreateTemplates()
 }
 
 static function X2AbilityTemplate
-CreateTakedownCommonProperties(name AbilityName)
+CreateTakedownCommonProperties(X2AbilityTemplate Template)
 {
 //used variables	
-	local X2AbilityTemplate					Template;
 	local X2AbilityCost_Ammo				AmmoCost;
-	//local X2Condition_UnitProperty			ConcealedCondition;
+	local X2Condition_UnitProperty			UnitPropCondition;
 	//local X2Effect_SetUnitValue				UnitValueEffect;
 	local X2Effect_MarkForTakedown			TakedownMarkEffect;		//shooting checks whether this effect is on the targets
 	local X2Condition_UnitEffects			SuppressedCondition;
 	local X2Condition_Visibility			VisibilityCondition;
 
-	`CREATE_X2ABILITY_TEMPLATE(Template, AbilityName);
 //Icon Properties
 	Template.bDontDisplayInAbilitySummary = true;
 	Template.bDisplayInUITooltip = false;
 	Template.bDisplayInUITacticalText = false;
 	Template.AbilitySourceName = 'eAbilitySource_Standard';
 	Template.eAbilityIconBehaviorHUD = eAbilityIconBehavior_ShowIfAvailableOrNoTargets;
+	//Template.DisplayTargetHitChance = true;	//TODO: enable this
 	Template.IconImage = "img:///UILibrary_PerkIcons.UIPerk_standard";
 	Template.ShotHUDPriority = class'UIUtilities_Tactical'.const.OVERWATCH_PRIORITY+1;
 	Template.AbilityTriggers.AddItem(default.PlayerInputTrigger);
@@ -66,33 +65,43 @@ CreateTakedownCommonProperties(name AbilityName)
 //target is a living enemy
 	Template.AbilityTargetConditions.AddItem(default.LivingHostileTargetProperty);
 
+//add standard ability cancel behavior for impairing states (panicked, stunned, etc.)
+	Template.AddShooterEffectExclusions();
+
 //Additional behavior when selected
 // Targeting Method
 	Template.AbilityTargetStyle = default.SimpleSingleTarget; // Only at single targets that are in range.
 	Template.TargetingMethod = class'X2TargetingMethod_OverTheShoulder';
-	//Template.bUsesFiringCamera = true; //needed?
-
+	
 //TODO: make some visual feedback, check how overwatch displays the popup text overhead
 	//	Template.CinescriptCameraType = "StandardGunFiring"; 
 	//note: X2Effect_MarkForTakedown takes care of effect application regardless of hit/miss
-	Template.AbilityToHitCalc = default.DeadEye;
-
+	
+	Template.AbilityToHitCalc = default.DeadEye;	//TODO: not good, it messes up displayed hit chances during targeting
+	
+	//Template.AbilityToHitCalc = default.SimpleStandardAim;	//TODO: find a way to fix the turn-not-end problem on miss
+	//Template.AbilityToHitOwnerOnMissCalc = default.DeadEye;
 	//Template.AbilityToHitOwnerOnMissCalc = default.SimpleStandardAim;		//TODO: check, that this is
 																			// X2AbilityTemplate says: 		"If !none, a miss on the main target will apply this chance to hit on the target's owner."
 
 
 //sets up ConcealedOverwatch if soldier is concealed(nnope, concealed OW works without this code)
-/*	
-	ConcealedCondition = new class'X2Condition_UnitProperty';
-	ConcealedCondition.ExcludeFriendlyToSource = false;
-	ConcealedCondition.IsConcealed = true;
+	UnitPropCondition = new class'X2Condition_UnitProperty';
+
+	UnitPropCondition.ExcludeFriendlyToSource = false;	//TODO: what?? whai?
+	//UnitPropCondition.IsConcealed = true;			//TODO: later
+	Template.AbilityShooterConditions.AddItem(UnitPropCondition);
+
+	//TODO: dump this (it was copied from overwatch I think, to filter concealment)
+	//			I think it filters, that concealed runners won't trigger enemy overwatch fire
+	/*
 	UnitValueEffect = new class'X2Effect_SetUnitValue';
 	UnitValueEffect.UnitName = 'ConcealedOverwatch';
 	UnitValueEffect.CleanupType = eCleanup_BeginTurn;
 	UnitValueEffect.NewValueToSet = 1;
-	UnitValueEffect.TargetConditions.AddItem(ConcealedCondition);
+	UnitValueEffect.TargetConditions.AddItem(UnitPropCondition);
 	Template.AddTargetEffect(UnitValueEffect);
-*/
+	*/
 
 //Ability gameplay effects
 //doesn't reveal soldier(this is only mark, not shoot)
@@ -103,7 +112,8 @@ CreateTakedownCommonProperties(name AbilityName)
 	//PostActivationEvents;     //  trigger these events after AbilityActivated is triggered (only when not interrupted) EventData=ability state, EventSource=owner unit state
 //place the mark on the target
 	TakedownMarkEffect = new class'X2Effect_MarkForTakedown';
-	TakedownMarkEffect.BuildPersistentEffect(1, true, true,, eGameRule_TacticalGameStart);
+	TakedownMarkEffect.BuildPersistentEffect(1, true, true,, eGameRule_TacticalGameStart);	//shouldn't be infinite
+	//TakedownMarkEffect.BuildPersistentEffect(1, false, true,, eGameRule_TacticalGameStart);	//TODO: try this
 	TakedownMarkEffect.SetDisplayInfo(ePerkBuff_Passive,
 										Template.LocFriendlyName,
 										Template.GetMyLongDescription(),
@@ -114,7 +124,8 @@ CreateTakedownCommonProperties(name AbilityName)
 //Set it up in the game
 	Template.BuildNewGameStateFn = TypicalAbility_BuildGameState;
 //	Template.BuildVisualizationFn = TypicalAbility_BuildVisualization;	//uses a shot animation for marking, replace this
-
+	//Template.BuildInterruptGameStateFn = TypicalAbility_BuildInterruptGameState;	//TODO: needed?
+	
 	return Template;	
 }
 
@@ -130,7 +141,8 @@ AddMarkForTakedownAbility()
 	local X2Effect_ReserveActionPoints      ReserveActionPointsEffect;	//this will give us the special action points the shot needs
 	local X2AbilityCost_ActionPoints        ActionPointCost;
 
-	Template = CreateTakedownCommonProperties('MarkForTakedown');
+	`CREATE_X2ABILITY_TEMPLATE(Template, 'MarkForTakedown');
+	Template = CreateTakedownCommonProperties(Template);
 
 //reserve TakedownActionPoint to use when shooting
 	ReserveActionPointsEffect = new class'X2Effect_ReserveTakedownActionPoints';
@@ -161,7 +173,8 @@ AddMarkForTakedownSniperAbility()
 	local X2AbilityCost_ActionPoints		ActionPointCost;
 	local X2Effect_ReserveActionPoints      ReserveActionPointsEffect;	//this will give us the special action points the shot needs
 
-	Template = CreateTakedownCommonProperties('MarkForTakedownSniper');
+	`CREATE_X2ABILITY_TEMPLATE(Template, 'MarkForTakedownSniper');
+	Template = CreateTakedownCommonProperties(Template);
 
 	//Icon Properties
 	Template.IconImage = "img:///UILibrary_PerkIcons.UIPerk_snipershot";
@@ -196,7 +209,8 @@ AddMarkForTakedownPistolAbility()
 	local X2Effect_ReserveActionPoints      ReserveActionPointsEffect;	//this will give us the special action points the shot needs
 	local X2AbilityCost_ActionPoints        ActionPointCost;
 
-	Template = CreateTakedownCommonProperties('MarkForTakedownPistol');
+	`CREATE_X2ABILITY_TEMPLATE(Template, 'MarkForTakedownPistol');
+	Template = CreateTakedownCommonProperties(Template);
 
 	//Icon Properties
 	Template.IconImage = "img:///UILibrary_PerkIcons.UIPerk_standardpistol";
@@ -226,16 +240,15 @@ AddMarkForTakedownPistolAbility()
 
 
 static function X2AbilityTemplate
-CreateTakedownShotCommonProperties(name AbilityName)
+CreateTakedownShotCommonProperties(X2AbilityTemplate Template)
 {
-	local X2AbilityTemplate								Template;	
 	local X2AbilityToHitCalc_StandardAim				StandardAim;
 	//local X2Condition_UnitProperty						ShooterCondition;
 	local X2AbilityTarget_Single						SingleTarget;
 	local X2Effect_Knockback							KnockbackEffect;
 	local X2Condition_UnitEffectsWithAbilitySource		AbilitySourceCondition; //this check whether the target was marked by us
 
-	`CREATE_X2ABILITY_TEMPLATE(Template, AbilityName);
+//	`CREATE_X2ABILITY_TEMPLATE(Template, AbilityName);
 
 	//Icon Properties
 	Template.bDisplayInUITooltip = false;
@@ -310,8 +323,9 @@ AddTakedownShotAbility()
 	local X2AbilityCost_ReserveActionPoints				ReserveActionPointCost;
 	local X2Condition_Visibility						TargetVisibilityCondition;
 
-//set up common properties
-	Template = CreateTakedownShotCommonProperties( 'TakedownShot' );
+	`CREATE_X2ABILITY_TEMPLATE(Template, 'TakedownShot');
+	//set up common properties
+	Template = CreateTakedownShotCommonProperties(Template);
 
 //Conditions:
 //has ammo
@@ -346,8 +360,9 @@ AddTakedownShotPistolAbility()
 	local X2AbilityCost_ReserveActionPoints		ReserveActionPointCost;
 	local X2Condition_Visibility				TargetVisibilityCondition;
 
-//set up common properties
-	Template = CreateTakedownShotCommonProperties( 'TakedownShotPistol' );
+	`CREATE_X2ABILITY_TEMPLATE(Template, 'TakedownShotPistol');
+	//set up common properties
+	Template = CreateTakedownShotCommonProperties(Template);
 
 	ReserveActionPointCost = new class'X2AbilityCost_ReserveActionPoints';
 	ReserveActionPointCost.iNumPoints = 1;
@@ -449,3 +464,6 @@ static simulated function OverwatchAbility_BuildVisualization(XComGameState Visu
 	//****************************************************************************************
 }
 
+DefaultProperties
+{
+}

@@ -72,7 +72,7 @@ GetReserveType(const out EffectAppliedData	ApplyEffectParameters,
 						return TakedownPistolActionPoint;
 					}else{
 						`CTUERR("GetReserveType(): Could not determine the Takedown Action Point Reserve Type for weapon: " $ WeaponName);
-						`CTUERR("GetReserveType():   The weapon '"$WeaponName$"' has 'MarkForTakedown' ability, but this mod cannot recognize an 'OverwatchActionPoint' Type for it!"
+						`CTUERR("GetReserveType():   The weapon '"$WeaponName$"' has 'MarkForTakedown' ability, but this mod cannot recognize an 'OverwatchActionPoint' Type for it!");
 						`CTUERR("GetReserveType():   Modded weapon maybe?");
 						return default.ReserveType;
 					}
@@ -104,5 +104,7 @@ DefaultProperties
 	TakedownActionPoint			= "ReserveActionPointTakedown"
 	TakedownPistolActionPoint	= "ReserveActionPointTakedownPistol"
 	ReserveType = TakedownActionPoint
+	//bApplyOnHit = true
+	//bApplyOnMiss = true		TODO: try these
 	NumPoints = 1
 }
