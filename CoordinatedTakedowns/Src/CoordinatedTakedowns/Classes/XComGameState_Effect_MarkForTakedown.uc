@@ -78,7 +78,7 @@ TakedownTriggerCheck(Object			EventData,
 	local XComGameState_Ability				TriggeringAbilityState;
 	local XComGameState_Ability				AbilityState;
 	local XComGameStateContext_Ability		AbilityContext;
-
+	local int 								MarkingUnitOwnerID, MarkedUnitOwnerID, PlayerID;
 	local name								AbilityCanActivateResult;
 
 	AbilityContext = XComGameStateContext_Ability(GameState.GetContext());
@@ -125,31 +125,41 @@ TakedownTriggerCheck(Object			EventData,
 			`CTUERR("TakedownTriggerCheck(): Could not acquire 'X2Effect_MarkForTakedown' reference from 'XComGameState_Effect_MarkForTakedown'");
 			return ELR_NoInterrupt;
 		}
-		//source unit owner			MarkingUnit.ControllingPlayer.ObjectID
-		//attacking unit owner		MarkedUnit.ControllingPlayer.ObjectID
-		//current player			`TACTICALRULES.GetCachedUnitActionPlayerRef().ObjectID
-
-		//only on player turn
-		if( (MarkingUnit.ControllingPlayer.ObjectID != MarkedUnit.ControllingPlayer.ObjectID)
-				&&(MarkingUnit.ControllingPlayer.ObjectID != `TACTICALRULES.GetCachedUnitActionPlayerRef().ObjectID) ) {
-			`CTUDEB("TakedownTriggerCheck(): Marking Unit is player unit, the Marked Target is not");
-			return ELR_NoInterrupt;
-		}
 
 		PrintInterruptionStatus(AbilityContext.InterruptionStatus);
 
 		if (MarkEffect.bPreEmptiveFire){
-			`CTUDEB("TakedownTriggerCheck(): 'bPreEmptiveFire' is on");
 			//  for pre emptive fire, only process during the interrupt step
 			if (AbilityContext.InterruptionStatus != eInterruptionStatus_Interrupt){
+				`CTUDEB("TakedownTriggerCheck(): 'bPreEmptiveFire' is on, Status: NOT Interrupt, skipping");
 				return ELR_NoInterrupt;
 			}
 		}else{
-			`CTUDEB("TakedownTriggerCheck(): 'bPreEmptiveFire' is off");
 			//  for non-pre emptive fire, don't process during the interrupt step
 			if (AbilityContext.InterruptionStatus == eInterruptionStatus_Interrupt){
+				`CTUDEB("TakedownTriggerCheck(): 'bPreEmptiveFire' is off, Status: Interrupt, skipping");
 				return ELR_NoInterrupt;
 			}
+		}
+
+		MarkingUnitOwnerID		= MarkingUnit.ControllingPlayer.ObjectID;
+		MarkedUnitOwnerID		= MarkedUnit.ControllingPlayer.ObjectID;
+		//AttackingUnitOwnerID	= MarkedUnit.ControllingPlayer.ObjectID;
+		PlayerID				= `TACTICALRULES.GetCachedUnitActionPlayerRef().ObjectID;
+		//source unit owner			MarkingUnit.ControllingPlayer.ObjectID
+		//attacking unit owner		MarkedUnit.ControllingPlayer.ObjectID
+		//current player			`TACTICALRULES.GetCachedUnitActionPlayerRef().ObjectID
+
+		//only against enemy units
+		if(MarkingUnit.ControllingPlayer.ObjectID == MarkedUnit.ControllingPlayer.ObjectID ){
+			`CTUDEB("TakedownTriggerCheck(): Marking Unit is on the same team as Marked Unit, skipping");
+			return ELR_NoInterrupt;
+		}
+
+		//only on player turn
+		if( MarkingUnit.ControllingPlayer.ObjectID != `TACTICALRULES.GetCachedUnitActionPlayerRef().ObjectID ) {
+			`CTUDEB("TakedownTriggerCheck(): Marking Unit is NOT a player unit, skipping");
+			return ELR_NoInterrupt;
 		}
 
 		AbilityRef = MarkingUnit.FindAbility('TakedownShot');

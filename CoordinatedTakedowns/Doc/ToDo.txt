@@ -14,16 +14,17 @@ find out if its better to add Takedown to EVERY weapon with StandardShot and var
 
 test notes:
 -----
+	TakedownShotCommonProperties
+		remove return value
+		use 'out' parameter?
+-----
+	fix TakedownShot
+		eg. ability impairing conditions (stun, etc.) should disable it
+-----
 	pistol takedown doesn't work
 -----
-	multiple soldiers (B,C) have active marks
-	soldier A does a step-out shot and kills enemy
-	B,C would shoot, but won't (target is dead)
-	a smaller lag spike happens
-	A doesn't step back into cover
-	game continues
-	--
-	may need a custom visualization function to solve this
+	TakedownShot doesn't work against props(exploding barrels, etc.)
+		MarkedVictim could not be acquired
 -----
 	MarkForTakedown is available during viper bind
 	probably TakedownShot too
@@ -38,28 +39,26 @@ test notes:
 
 		shouldn't work (no more TakedownActionPoints reserved)
 -----
+	add concealment condition to abilities
+-----
+	check if suppression prevents marking
+-----
 	check if unreal allows assignment operators in if conditions
 		and remove yoda codes if not!
 -----
-	TakedownShotCommonProperties
-		remove return value
-		use 'out' parameter?
------
-	fix TakedownShot
-		eg. ability impairing conditions (stun, etc.) should disable it
-	
------
-	where's the crash ??????
-		was it solved in the past ??
------	
-	check if suppression prevents marking
+	multiple soldiers (B,C) have active marks
+	soldier A does a step-out shot and kills enemy
+	B,C would shoot, but won't (target is dead)
+	a smaller lag spike happens
+	A doesn't step back into cover
+	game continues
+	--
+	may need a custom visualization function to solve this
 -----
 	show ToHit percentage during aiming
 		has to rewrite deadeye aim so it will bring back the fail-on-miss bug
 -----
 	find special icons
------
-	display ability names in debug when processing takedowntriggercheck
 -----
 	find all TODO notes
 -----
