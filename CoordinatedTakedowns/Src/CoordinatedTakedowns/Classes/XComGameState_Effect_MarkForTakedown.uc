@@ -57,17 +57,16 @@ TakedownTriggerCheck(Object			EventData,
 					 XComGameState	GameState,
 					 Name			EventID)
 {
+	local XComGameStateHistory				History;
 	local XComGameState_Unit				AttackingUnit;
 	local XComGameState_Unit				MarkingUnit, MarkedUnit;
 	//local XComGameState_???				  MarkedProp;	//exploding barrels, etc.
 	local int 								MarkingUnitOwnerID, MarkedUnitOwnerID, PlayerID;
-
-	local XComGameStateHistory				History;
 	local X2Effect_MarkForTakedown			MarkEffect;
-	local StateObjectReference				TakedownAbilityRef, EmptyRef;		//TODO: check what ObjectID EmptyRef has
 	local XComGameState_Ability				TriggeringAbilityState;
-	local XComGameState_Ability				TakedownAbilityState;
 	local XComGameStateContext_Ability		TriggeringAbilityContext;
+	local StateObjectReference				TakedownAbilityRef, EmptyRef;		//TODO: check what ObjectID EmptyRef has
+	local XComGameState_Ability				TakedownAbilityState;
 	local name								AbilityCanActivateResult;
 
 	TriggeringAbilityContext = XComGameStateContext_Ability(GameState.GetContext());
@@ -113,76 +112,75 @@ TakedownTriggerCheck(Object			EventData,
 		return ELR_NoInterrupt;
 	}
 
-	if (AttackingUnit.IsFriendlyUnit(MarkingUnit)){
-		`CTUDEB("TakedownTriggerCheck(): Attacking unit is friendly to Marking unit");
-		MarkEffect = X2Effect_MarkForTakedown(GetX2Effect());
-		if( MarkEffect == none ){
-			`CTUERR("TakedownTriggerCheck(): Could not acquire 'X2Effect_MarkForTakedown' reference from 'XComGameState_Effect_MarkForTakedown'");
+	if (!AttackingUnit.IsFriendlyUnit(MarkingUnit)){
+		`CTUDEB("TakedownTriggerCheck(): Attacking unit is not friendly to Marking unit, skipping");
+		return ELR_NoInterrupt;
+	}
+	MarkEffect = X2Effect_MarkForTakedown(GetX2Effect());
+	if( MarkEffect == none ){
+		`CTUERR("TakedownTriggerCheck(): Could not acquire 'X2Effect_MarkForTakedown' reference from 'XComGameState_Effect_MarkForTakedown'");
+		return ELR_NoInterrupt;
+	}
+
+	PrintInterruptionStatus(TriggeringAbilityContext.InterruptionStatus);
+	MarkingUnitOwnerID	= MarkingUnit.ControllingPlayer.ObjectID;
+	MarkedUnitOwnerID	= MarkedUnit.ControllingPlayer.ObjectID;
+	PlayerID			= `TACTICALRULES.GetCachedUnitActionPlayerRef().ObjectID;	//TODO: check whether this is Player or current Player (should be Player)
+
+	if (MarkEffect.bPreEmptiveFire){
+		//  for pre emptive fire, only process during the interrupt step
+		if (TriggeringAbilityContext.InterruptionStatus != eInterruptionStatus_Interrupt){
+			`CTUDEB("TakedownTriggerCheck(): 'bPreEmptiveFire' is on, Status: NOT Interrupt, skipping");
 			return ELR_NoInterrupt;
 		}
-
-		PrintInterruptionStatus(TriggeringAbilityContext.InterruptionStatus);
-
-		if (MarkEffect.bPreEmptiveFire){
-			//  for pre emptive fire, only process during the interrupt step
-			if (TriggeringAbilityContext.InterruptionStatus != eInterruptionStatus_Interrupt){
-				`CTUDEB("TakedownTriggerCheck(): 'bPreEmptiveFire' is on, Status: NOT Interrupt, skipping");
-				return ELR_NoInterrupt;
-			}
-		}else{
-			//  for non-pre emptive fire, don't process during the interrupt step
-			if (TriggeringAbilityContext.InterruptionStatus == eInterruptionStatus_Interrupt){
-				`CTUDEB("TakedownTriggerCheck(): 'bPreEmptiveFire' is off, Status: Interrupt, skipping");
-				return ELR_NoInterrupt;
-			}
-		}
-
-		MarkingUnitOwnerID		= MarkingUnit.ControllingPlayer.ObjectID;
-		MarkedUnitOwnerID		= MarkedUnit.ControllingPlayer.ObjectID;
-		PlayerID				= `TACTICALRULES.GetCachedUnitActionPlayerRef().ObjectID;	//TODO: check whether this is Player or current Player (should be Player)
-
-		//only against enemy units
-		if(MarkingUnitOwnerID == MarkedUnitOwnerID ){
-			`CTUDEB("TakedownTriggerCheck(): Marking Unit is on the same team as Marked Unit, skipping");
+	}else{
+		//  for non-pre emptive fire, don't process during the interrupt step
+		if (TriggeringAbilityContext.InterruptionStatus == eInterruptionStatus_Interrupt){
+			`CTUDEB("TakedownTriggerCheck(): 'bPreEmptiveFire' is off, Status: Interrupt, skipping");
 			return ELR_NoInterrupt;
-		}
-
-		//only on player turn
-		if( MarkingUnitOwnerID != `TACTICALRULES.GetCachedUnitActionPlayerRef().ObjectID ) {
-			`CTUDEB("TakedownTriggerCheck(): Marking Unit is NOT a player unit, skipping");
-			return ELR_NoInterrupt;
-		}
-
-		TakedownAbilityRef = MarkingUnit.FindAbility('TakedownShot');
-		if(EmptyRef == TakedownAbilityRef){
-			`CTUERR("TakedownTriggerCheck(): Could not acquire TakedownAbilityRef from MarkingUnit");
-			return ELR_NoInterrupt;
-		}
-
-		TakedownAbilityState = XComGameState_Ability(History.GetGameStateForObjectID(TakedownAbilityRef.ObjectID));
-		if(none == TakedownAbilityState){
-			`CTUERR("TakedownTriggerCheck(): Could not acquire TakedownAbilityState based on ObjectID");
-			return ELR_NoInterrupt;
-		}
-
-		AbilityCanActivateResult = TakedownAbilityState.CanActivateAbilityForObserverEvent(MarkedUnit, MarkingUnit);
-		`CTUDEB("TakedownTriggerCheck(): AbilityCanActivateResult: " $ AbilityCanActivateResult);
-		if (AbilityCanActivateResult == 'AA_Success'){
-			`CTUDEB("TakedownTriggerCheck(): TakedownAbilityState activation condition check PASSED");
-
-			//update the GameStateContext of the Triggering ability with the changes
-			TriggeringAbilityContext = class'XComGameStateContext_Ability'.static.
-									BuildContextFromAbility(TakedownAbilityState, MarkedUnit.ObjectID );
-
-			if( TriggeringAbilityContext.Validate() ){
-				`TACTICALRULES.SubmitGameStateContext(TriggeringAbilityContext);
-			}else{
-				`CTUERR("TakedownTriggerCheck(): Failed to validate new TriggeringAbilityContext for Marked unit");
-			}
-		}else{
-			`CTUDEB("TakedownTriggerCheck(): TakedownAbilityState activation condition check FAILED");
 		}
 	}
-	return ELR_NoInterrupt;
 
+	//only against enemy units
+	if(MarkingUnitOwnerID == MarkedUnitOwnerID ){
+		`CTUDEB("TakedownTriggerCheck(): Marking Unit is on the same team as Marked Unit, skipping");
+		return ELR_NoInterrupt;
+	}
+
+	//only on player turn
+	if( MarkingUnitOwnerID != `TACTICALRULES.GetCachedUnitActionPlayerRef().ObjectID ) {
+		`CTUDEB("TakedownTriggerCheck(): Marking Unit is NOT a player unit, skipping");
+		return ELR_NoInterrupt;
+	}
+
+	TakedownAbilityRef = MarkingUnit.FindAbility('TakedownShot');
+	if(EmptyRef == TakedownAbilityRef){
+		`CTUERR("TakedownTriggerCheck(): Could not acquire TakedownAbilityRef from MarkingUnit");
+		return ELR_NoInterrupt;
+	}
+
+	TakedownAbilityState = XComGameState_Ability(History.GetGameStateForObjectID(TakedownAbilityRef.ObjectID));
+	if(none == TakedownAbilityState){
+		`CTUERR("TakedownTriggerCheck(): Could not acquire TakedownAbilityState based on ObjectID");
+		return ELR_NoInterrupt;
+	}
+
+	AbilityCanActivateResult = TakedownAbilityState.CanActivateAbilityForObserverEvent(MarkedUnit, MarkingUnit);
+	`CTUDEB("TakedownTriggerCheck(): AbilityCanActivateResult: " $ AbilityCanActivateResult);
+	if (AbilityCanActivateResult == 'AA_Success'){
+		`CTUDEB("TakedownTriggerCheck(): TakedownAbilityState activation condition check PASSED");
+
+		//update the GameStateContext of the Triggering ability with the changes
+		TriggeringAbilityContext = class'XComGameStateContext_Ability'.static.
+								BuildContextFromAbility(TakedownAbilityState, MarkedUnit.ObjectID );
+
+		if( TriggeringAbilityContext.Validate() ){
+			`TACTICALRULES.SubmitGameStateContext(TriggeringAbilityContext);
+		}else{
+			`CTUERR("TakedownTriggerCheck(): Failed to validate new TriggeringAbilityContext for Marked unit");
+		}
+	}else{
+		`CTUDEB("TakedownTriggerCheck(): TakedownAbilityState activation condition check FAILED");
+	}
+	return ELR_NoInterrupt;
 }
