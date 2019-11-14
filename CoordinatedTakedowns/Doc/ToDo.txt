@@ -1,44 +1,72 @@
 primary:
-	TakedownShot doesn't work against props(exploding barrels, etc.)
-		MarkedVictim could not be acquired
-	pistol Mark has squadsight range
-		shot too? (update: it doesn't, AA_NotInRange)
-		normal mark too?
 
-	remove the mod class override (find an alternative means to work)
-		where does it fail actually?
-	
-	make mod compatible with Long War 2
-		if LW2 loads later than this mod, then it erases all previous weapontemplates and adds its own
-		LW2 provides hooks to re-add templates after LW2 initialized
-		see LW2_Tuple
-	add LW2 weapons to the mod!
 	
 planned:
-	show ToHit percentage during aiming
-		has to rewrite deadeye aim so it will bring back the fail-on-miss bug
+	see that all Long War 2 weapons which should have the ability, do have it
+
+	don't allow Mark ability to be the last action of the squad
+		think the cases through, but it might be a nice user experience improvement
+	OR
+		turn end should trigger remaining Takedown shots
+			this seems like a really good choice
 	seems the MarkEffect is still on the unit after a TakedownShot (before turn-end auto removes it. does it?)
 		may just be, that active effects check the triggered Takedown shots too
 		see if it works with LW2 Command ability
 			mark a unit
 			trigger a takedown
-			give an action point to the marker
+			give an action point to the marker (2nd case: mark another target)
 			trigger another takedown
-
 			shouldn't work (no more TakedownActionPoints reserved)
+				2nd case may work, where the marker shoots again at the first marked unit instead
+	TakedownShot doesn't work against props(exploding barrels, etc.)
+		MarkedVictim could not be acquired
+		find out what an explodable targetable prop is in terms of clases
+		see X2Condition_UnitType
+		see X2Condition_UnitProperty
+		Mark cannot target props temporarily
+	show ToHit percentage during aiming
+		has to rewrite deadeye aim, but it will bring back the fail-on-miss bug
+	remove the mod class override (find an alternative means to work)
+		where does it fail actually?
 	find out if its better to add Takedown to EVERY weapon with StandardShot and variants
 		see evac-all where it adds it to every char with the evac ability
+		also determining squadsight availibility would be more consistent
+			with the weapons' standard shots squadsight availability
+	improve visualization so that the takedown shots happen simultaneously
+		see chain lightning mod for example
+	can make it work with AoE targeting launchers too
+		not sure: various grenade types may spam UI
+		do a normal grenade aim targeting
+			save the target location somewhere
+			if you can feed the saved location to the Takedown grenade shot ability,
+				the rest should be straightforward
+		psi abilities too (it may spam the ability UI however)
 	find special icons
 	solve all TODO notes
+
+
+
 beautyfix:
 	use ActionsPoints instead of ReserveActionPoints if you can
 	move included headers from "Classes" 1 level up in the directoy hierarchy
-
+	Concealment condition check improvements
+		X2Condition_RequireConcealed class seems a little hacky	(not sure if works all the time)
+		see X2Condition_Stealth for means of implementing solution
 
 fixed but not tested:
 
 
 test plans:
+	mark an enemy
+	trigger a scamper with a non agressive action
+	try to trigger a takedown
+		does it trigger a takedown? (i think it will)
+		do normal shooting conditions matter?
+		own, or enemy concealment matters?
+	expected correct behavior:
+		no takedown should take place after concealment is broken
+		scamper should also trigger a takedown without agressive actions too
+			basically should work exactly as an overwatch just with specific targets
 -----
 	check aim percentages
 		enemy is in cover while patrolling

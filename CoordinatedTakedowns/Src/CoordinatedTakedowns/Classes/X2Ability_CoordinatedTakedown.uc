@@ -60,10 +60,10 @@ CreateTakedownCommonProperties(out X2AbilityTemplate Template)
 //target is visible
 	VisibilityCondition = new class'X2Condition_Visibility';
 	VisibilityCondition.bRequireGameplayVisible = true;
-	VisibilityCondition.bAllowSquadsight = true;
 	Template.AbilityTargetConditions.AddItem(VisibilityCondition);
 //target is a living enemy
-	Template.AbilityTargetConditions.AddItem(default.LivingHostileTargetProperty);
+	//Template.AbilityTargetConditions.AddItem(default.LivingHostileTargetProperty);
+	Template.AbilityTargetConditions.AddItem(default.LivingHostileUnitOnlyProperty);	//TODO: temporary: filters shootable props
 
 //add standard ability cancel behavior for impairing states (panicked, stunned, etc.)
 	Template.AddShooterEffectExclusions();
@@ -112,6 +112,8 @@ CreateTakedownCommonProperties(out X2AbilityTemplate Template)
 	Template.BuildNewGameStateFn = TypicalAbility_BuildGameState;
 //	Template.BuildVisualizationFn = TypicalAbility_BuildVisualization;	//uses a shot animation for marking, replace this
 	//Template.BuildInterruptGameStateFn = TypicalAbility_BuildInterruptGameState;	//TODO: needed?
+
+	//Template.bSkipFireAction = true;	//TODO: see this
 }
 
 
@@ -125,9 +127,15 @@ AddMarkForTakedownAbility()
 	local X2AbilityTemplate                 Template;
 	local X2Effect_ReserveActionPoints      ReserveActionPointsEffect;	//this will give us the special action points the shot needs
 	local X2AbilityCost_ActionPoints        ActionPointCost;
+	local X2Condition_Visibility			VisibilityCondition;
 
 	`CREATE_X2ABILITY_TEMPLATE(Template, 'MarkForTakedown');
 	CreateTakedownCommonProperties(Template);
+
+//allow squadsight usage
+	VisibilityCondition = new class'X2Condition_Visibility';
+	VisibilityCondition.bAllowSquadsight = true;
+	Template.AbilityTargetConditions.AddItem(VisibilityCondition);
 
 //reserve TakedownActionPoint to use when shooting
 	ReserveActionPointsEffect = new class'X2Effect_ReserveTakedownActionPoints';
@@ -157,11 +165,17 @@ AddMarkForTakedownSniperAbility()
 	local X2AbilityTemplate                 Template;
 	local X2AbilityCost_ActionPoints		ActionPointCost;
 	local X2Effect_ReserveActionPoints      ReserveActionPointsEffect;	//this will give us the special action points the shot needs
-
+	local X2Condition_Visibility			VisibilityCondition;
+	
 	`CREATE_X2ABILITY_TEMPLATE(Template, 'MarkForTakedownSniper');
 	CreateTakedownCommonProperties(Template);
 
-	//Icon Properties
+//allow squadsight usage
+	VisibilityCondition = new class'X2Condition_Visibility';
+	VisibilityCondition.bAllowSquadsight = true;
+	Template.AbilityTargetConditions.AddItem(VisibilityCondition);
+
+//Icon Properties
 	Template.IconImage = "img:///UILibrary_PerkIcons.UIPerk_snipershot";
 	Template.ShotHUDPriority = class'UIUtilities_Tactical'.const.OVERWATCH_PRIORITY+1;
 

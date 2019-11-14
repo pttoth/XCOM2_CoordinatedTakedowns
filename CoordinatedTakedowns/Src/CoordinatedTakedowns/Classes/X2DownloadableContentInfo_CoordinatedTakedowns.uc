@@ -27,6 +27,14 @@ static event OnPostTemplatesCreated()
 	AddAbilitiesToPrimaries();
 	AddAbilitiesToPistols();
 	AddAbilitiesToSnipers();
+	//additional types to be added later (maybe)
+	//AoE targeting launchers
+		//grenade
+		//rockets
+		//shredder
+		//flamethrower
+	//sawnoffs (LW2)
+	//psi abilities (this is very unlikely)
 }
 
 //-----
@@ -47,13 +55,13 @@ AddAbilitiesToWeapon(X2ItemTemplateManager		ItemMgr,
 
 	DifficultyVersionCount = WeaponDataTemplateDifficulties.Length;
 	if(0 == DifficultyVersionCount){
-		`CTUWARN("AddAbilitiesToWeapon(): missing weapon:" $ WeaponName $ ", skipping");
+		`CTUWARN("Missing weapon:" $ WeaponName $ ", skipping");
 	}else{
-		`CTULOG("AddAbilitiesToWeapon(): Adding abilities to " $ string(WeaponName));
+		`CTULOG("Adding abilities to " $ string(WeaponName));
 		foreach WeaponDataTemplateDifficulties(WeaponDataTemplate){
 			WeaponTemplate = X2WeaponTemplate(WeaponDataTemplate);
 			if(WeaponTemplate == none){
-				`CTUERR("AddAbilitiesToWeapon(): Missing weapon template in array:" $ WeaponName $ ", skipping");
+				`CTUERR("Missing weapon template in array:" $ WeaponName $ ", skipping");
 			}else{
 				foreach AbilityNames(AbilityName){
 					WeaponTemplate.Abilities.AddItem( AbilityName );
@@ -61,7 +69,7 @@ AddAbilitiesToWeapon(X2ItemTemplateManager		ItemMgr,
 			}
 		}
 		if(4 != DifficultyVersionCount){
-			`CTUWARN("AddAbilitiesToWeapon(): Invalid amount of difficulty-templates exist for weapon"
+			`CTUWARN("Invalid amount of difficulty-templates exist for weapon: "
 				$ string(WeaponName) $ "(" $ DifficultyVersionCount $ ")");
 		}
 	}
