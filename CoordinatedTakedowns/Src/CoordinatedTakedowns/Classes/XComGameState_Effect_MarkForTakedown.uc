@@ -18,7 +18,7 @@ IdentifyUnit(XComGameState_Unit Unit)
 {
 	local string UnitName;
 	UnitName = Unit.GetNickName();
-	if("" == UnitName){
+	if(UnitName == ""){
 		UnitName = Unit.GetFullName();
 	}
 	return UnitName;
@@ -29,13 +29,13 @@ PrintTakedownActors(XComGameState_Unit Attacker,
 					XComGameState_Unit Marker,
 					XComGameState_Unit MarkedVictim)
 {
-	if(none == Attacker){	`CTUERR("Attacker: Could not acquire unit reference");
+	if(Attacker == none){	`CTUERR("Attacker: Could not acquire unit reference");
 	}else{					`CTUDEB("Attacker: '" $ IdentifyUnit(Attacker) $ "'");
 	}
-	if(none == Marker){		`CTUERR("Marker: Could not acquire unit reference");
+	if(Marker == none){		`CTUERR("Marker: Could not acquire unit reference");
 	}else{					`CTUDEB("Marker: '" $ IdentifyUnit(Marker) $ "'");
 	}
-	if(none == MarkedVictim){	`CTUERR("MarkedVictim: Could not acquire unit reference");
+	if(MarkedVictim == none){	`CTUERR("MarkedVictim: Could not acquire unit reference");
 	}else{						`CTUDEB("MarkedVictim: '" $ IdentifyUnit(MarkedVictim) $ "'");
 	}
 }
@@ -48,6 +48,23 @@ PrintInterruptionStatus(EInterruptionStatus status)
 	}else if(status == eInterruptionStatus_Resume){		`CTUDEB("InterruptionStatus: eInterruptionStatus_Resume");
 	}else{												`CTUWARN("InterruptionStatus: UNKNOWN");
 	}
+}
+
+function name
+IdentifyTakedownTypeByAvailableActionPoints(XComGameState_Unit MarkingUnit){
+	local name CurrentAP;
+
+	if(MarkingUnit != none){
+		//foreach MarkingUnit.ActionPoints(CurrentAP){
+		foreach MarkingUnit.ReserveActionPoints(CurrentAP){
+			if(CurrentAP == 'ReserveActionPointTakedown'){
+				return 'TakedownShot';
+			}else if(CurrentAP == 'ReserveActionPointTakedownPistol'){
+				return 'TakedownShotPistol';
+			}
+		}
+	}
+	return '';
 }
 
 //in case of override conflict with your own mod, copy this function into your own overriding class
@@ -65,12 +82,13 @@ TakedownTriggerCheck(Object			EventData,
 	local X2Effect_MarkForTakedown			MarkEffect;
 	local XComGameState_Ability				TriggeringAbilityState;
 	local XComGameStateContext_Ability		TriggeringAbilityContext;
-	local StateObjectReference				TakedownAbilityRef, EmptyRef;		//TODO: check what ObjectID EmptyRef has
+	local StateObjectReference				TakedownAbilityRef, EmptyRef;	//TODO: check what ObjectID EmptyRef has
 	local XComGameState_Ability				TakedownAbilityState;
+	local name								TakedownAbilityName;			//stores the Takedown type to use
 	local name								AbilityCanActivateResult;
 
 	TriggeringAbilityContext = XComGameStateContext_Ability(GameState.GetContext());
-	if (none == TriggeringAbilityContext){
+	if (TriggeringAbilityContext == none){
 		`CTUERR("TakedownTriggerCheck(): Could not acquire TriggeringAbilityContext!");
 		return ELR_NoInterrupt;
 	}
@@ -86,7 +104,7 @@ TakedownTriggerCheck(Object			EventData,
 
 	//check whether the activated ability is offensive
 	AttackingUnit = class'X2TacticalGameRulesetDataStructures'.static.GetAttackingUnitState(GameState);
-	if(none == AttackingUnit){
+	if(AttackingUnit == none){
 		`CTUDEB("TakedownTriggerCheck(): Could not acquire 'AttackingUnit' ref, the ability in action is not offensive, skipping");
 		return ELR_NoInterrupt;
 	}
@@ -105,8 +123,8 @@ TakedownTriggerCheck(Object			EventData,
 
 	PrintTakedownActors(AttackingUnit, MarkingUnit, MarkedUnit); //TODO: print prop ref too
 
-	if( (none == MarkingUnit)
-		|| (none == MarkedUnit) )		//TODO: update this condition with prop
+	if( (MarkingUnit == none)
+		|| (MarkedUnit == none) )		//TODO: update this condition with prop
 	{
 		`CTUERR("TakedownTriggerCheck(): Could not acquire all of the units during TakedownTriggerCheck, skipping");
 		return ELR_NoInterrupt;
@@ -148,19 +166,23 @@ TakedownTriggerCheck(Object			EventData,
 	}
 
 	//only on player turn
-	if( MarkingUnitOwnerID != `TACTICALRULES.GetCachedUnitActionPlayerRef().ObjectID ) {
+	if( MarkingUnitOwnerID != PlayerID ) {
 		`CTUDEB("TakedownTriggerCheck(): Marking Unit is NOT a player unit, skipping");
 		return ELR_NoInterrupt;
 	}
 
-	TakedownAbilityRef = MarkingUnit.FindAbility('TakedownShot');
+	//TODO: find out which kind of ReserveActionPoint is available
+	TakedownAbilityName = IdentifyTakedownTypeByAvailableActionPoints(MarkingUnit);
+	TakedownAbilityRef = MarkingUnit.FindAbility( TakedownAbilityName );
+	`CTUDEB("TakedownTriggerCheck(): Trying to identify Takedown ability type to use. Result: '" $ TakedownAbilityName $ "'");
+
 	if(EmptyRef == TakedownAbilityRef){
 		`CTUERR("TakedownTriggerCheck(): Could not acquire TakedownAbilityRef from MarkingUnit");
 		return ELR_NoInterrupt;
 	}
 
 	TakedownAbilityState = XComGameState_Ability(History.GetGameStateForObjectID(TakedownAbilityRef.ObjectID));
-	if(none == TakedownAbilityState){
+	if(TakedownAbilityState == none){
 		`CTUERR("TakedownTriggerCheck(): Could not acquire TakedownAbilityState based on ObjectID");
 		return ELR_NoInterrupt;
 	}

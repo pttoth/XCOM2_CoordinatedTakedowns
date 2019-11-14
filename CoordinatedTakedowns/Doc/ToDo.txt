@@ -1,50 +1,74 @@
-make mod compatible with Long War 2
-	if LW2 loads later than this mod, then it erases all previous weapontemplates and adds its own
-	LW2 provides hooks to re-add templates after LW2 initialized
-	see LW2_Tuple
-	
-find out how the crash occured before with GameStates
-	could not seem to reproduce
-	
-
-find out if its better to add Takedown to EVERY weapon with StandardShot and variants
-	(see evac-all where it adds it to every char with the evac ability)
-
-
-
-test notes:
------
-	TakedownShotCommonProperties
-		remove return value
-		use 'out' parameter?
------
-	fix TakedownShot
-		eg. ability impairing conditions (stun, etc.) should disable it
------
-	pistol takedown doesn't work
------
+primary:
 	TakedownShot doesn't work against props(exploding barrels, etc.)
 		MarkedVictim could not be acquired
------
-	MarkForTakedown is available during viper bind
-	probably TakedownShot too
------
-	seems the MarkEffect is still on the unit after a MarkShot
-		may just be, that active effects check the triggered Takedown shots too
-	see if it works with LW2 Command ability
-		mark a unit
-		trigger a takedown
-		give an action point to the marker
-		trigger another takedown
+	pistol Mark has squadsight range
+		shot too? (update: it doesn't, AA_NotInRange)
+		normal mark too?
 
-		shouldn't work (no more TakedownActionPoints reserved)
+	remove the mod class override (find an alternative means to work)
+		where does it fail actually?
+	
+	make mod compatible with Long War 2
+		if LW2 loads later than this mod, then it erases all previous weapontemplates and adds its own
+		LW2 provides hooks to re-add templates after LW2 initialized
+		see LW2_Tuple
+	add LW2 weapons to the mod!
+	
+planned:
+	show ToHit percentage during aiming
+		has to rewrite deadeye aim so it will bring back the fail-on-miss bug
+	seems the MarkEffect is still on the unit after a TakedownShot (before turn-end auto removes it. does it?)
+		may just be, that active effects check the triggered Takedown shots too
+		see if it works with LW2 Command ability
+			mark a unit
+			trigger a takedown
+			give an action point to the marker
+			trigger another takedown
+
+			shouldn't work (no more TakedownActionPoints reserved)
+	find out if its better to add Takedown to EVERY weapon with StandardShot and variants
+		see evac-all where it adds it to every char with the evac ability
+	find special icons
+	solve all TODO notes
+beautyfix:
+	use ActionsPoints instead of ReserveActionPoints if you can
+	move included headers from "Classes" 1 level up in the directoy hierarchy
+
+
+fixed but not tested:
+
+
+test plans:
 -----
-	add concealment condition to abilities
+	check aim percentages
+		enemy is in cover while patrolling
+		triggering shot has full aim
+		squad reveal
+		markers take their TakedownShots
+			do these shots have valid (cover-free) aim values?
 -----
 	check if suppression prevents marking
+		shouldn't be possible with concealment
+		except maybe:
+			under suppression
+			enter concealment
+			try mark
 -----
-	check if unreal allows assignment operators in if conditions
-		and remove yoda codes if not!
+	check how it works during mind control (is this even possible in a normal game?)
+	---
+		mark enemy
+		mind control it
+		trigger takedown
+	---
+		mind control an enemy
+		add concealment to them (lol)
+		mark an enemy with mind controlled unit
+		lose control
+		trigger takedown
+	---
+		mark
+		let enemy mind control it (on your turn???)
+		trigger takedown
 -----
 	multiple soldiers (B,C) have active marks
 	soldier A does a step-out shot and kills enemy
@@ -55,17 +79,4 @@ test notes:
 	--
 	may need a custom visualization function to solve this
 -----
-	show ToHit percentage during aiming
-		has to rewrite deadeye aim so it will bring back the fail-on-miss bug
------
-	find special icons
------
-	find all TODO notes
------
-see
-	X2Condition_Stealth
-	X2Condition_UnitEffects
-	X2Condition_UnitInteractions
-	X2Condition_UnitProperty
-	X2Condition_UnitStatCheck
-	
+

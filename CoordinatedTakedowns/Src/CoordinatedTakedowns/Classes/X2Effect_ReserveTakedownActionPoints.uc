@@ -46,7 +46,7 @@ GetReserveType(const out EffectAppliedData	ApplyEffectParameters,
 		}else{
 			`CTUDEB("GetReserveType(): Acquired ItemState");
 			WeaponTemplate = X2WeaponTemplate(ItemState.GetMyTemplate());
-			if( none == WeaponTemplate ){
+			if( WeaponTemplate == none){
 				`CTUERR("GetReserveType(): Could not acquire weapon template for item:" $ ItemState.GetMyTemplateName());
 			}else{
 				if ( WeaponTemplate.OverwatchActionPoint != '' ){

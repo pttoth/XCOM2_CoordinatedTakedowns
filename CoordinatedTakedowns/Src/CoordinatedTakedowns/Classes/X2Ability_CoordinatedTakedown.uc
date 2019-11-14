@@ -5,6 +5,8 @@ class X2Ability_CoordinatedTakedown
 
 `include (CoordinatedTakedowns/Src/CoordinatedTakedowns/Classes/CTGlobals.uci)
 
+var config bool bRemoveConcealmentRequirement;
+
 //------------------------------------------------------------------
 //***********************CREATE TEMPLATES***************************
 //------------------------------------------------------------------
@@ -22,13 +24,11 @@ CreateTemplates()
 	return Templates;
 }
 
-static function X2AbilityTemplate
-CreateTakedownCommonProperties(X2AbilityTemplate Template)
+static function
+CreateTakedownCommonProperties(out X2AbilityTemplate Template)
 {
 //used variables	
 	local X2AbilityCost_Ammo				AmmoCost;
-	local X2Condition_UnitProperty			UnitPropCondition;
-	//local X2Effect_SetUnitValue				UnitValueEffect;
 	local X2Effect_MarkForTakedown			TakedownMarkEffect;		//shooting checks whether this effect is on the targets
 	local X2Condition_UnitEffects			SuppressedCondition;
 	local X2Condition_Visibility			VisibilityCondition;
@@ -84,24 +84,11 @@ CreateTakedownCommonProperties(X2AbilityTemplate Template)
 	//Template.AbilityToHitOwnerOnMissCalc = default.SimpleStandardAim;		//TODO: check, that this is
 																			// X2AbilityTemplate says: 		"If !none, a miss on the main target will apply this chance to hit on the target's owner."
 
-
-//sets up ConcealedOverwatch if soldier is concealed(nnope, concealed OW works without this code)
-	UnitPropCondition = new class'X2Condition_UnitProperty';
-
-	UnitPropCondition.ExcludeFriendlyToSource = false;	//TODO: what?? whai?
-	//UnitPropCondition.IsConcealed = true;			//TODO: later
-	Template.AbilityShooterConditions.AddItem(UnitPropCondition);
-
-	//TODO: dump this (it was copied from overwatch I think, to filter concealment)
-	//			I think it filters, that concealed runners won't trigger enemy overwatch fire
-	/*
-	UnitValueEffect = new class'X2Effect_SetUnitValue';
-	UnitValueEffect.UnitName = 'ConcealedOverwatch';
-	UnitValueEffect.CleanupType = eCleanup_BeginTurn;
-	UnitValueEffect.NewValueToSet = 1;
-	UnitValueEffect.TargetConditions.AddItem(UnitPropCondition);
-	Template.AddTargetEffect(UnitValueEffect);
-	*/
+//add concealment requirement condition
+	`CTUDEB("CreateTemplates(): bRemoveConcealmentRequirement: " $ default.bRemoveConcealmentRequirement);
+	if(!default.bRemoveConcealmentRequirement){
+		Template.AbilityShooterConditions.AddItem( new class'X2Condition_RequireConcealed' );
+	}
 
 //Ability gameplay effects
 //doesn't reveal soldier(this is only mark, not shoot)
@@ -125,8 +112,6 @@ CreateTakedownCommonProperties(X2AbilityTemplate Template)
 	Template.BuildNewGameStateFn = TypicalAbility_BuildGameState;
 //	Template.BuildVisualizationFn = TypicalAbility_BuildVisualization;	//uses a shot animation for marking, replace this
 	//Template.BuildInterruptGameStateFn = TypicalAbility_BuildInterruptGameState;	//TODO: needed?
-	
-	return Template;	
 }
 
 
@@ -142,7 +127,7 @@ AddMarkForTakedownAbility()
 	local X2AbilityCost_ActionPoints        ActionPointCost;
 
 	`CREATE_X2ABILITY_TEMPLATE(Template, 'MarkForTakedown');
-	Template = CreateTakedownCommonProperties(Template);
+	CreateTakedownCommonProperties(Template);
 
 //reserve TakedownActionPoint to use when shooting
 	ReserveActionPointsEffect = new class'X2Effect_ReserveTakedownActionPoints';
@@ -174,7 +159,7 @@ AddMarkForTakedownSniperAbility()
 	local X2Effect_ReserveActionPoints      ReserveActionPointsEffect;	//this will give us the special action points the shot needs
 
 	`CREATE_X2ABILITY_TEMPLATE(Template, 'MarkForTakedownSniper');
-	Template = CreateTakedownCommonProperties(Template);
+	CreateTakedownCommonProperties(Template);
 
 	//Icon Properties
 	Template.IconImage = "img:///UILibrary_PerkIcons.UIPerk_snipershot";
@@ -194,7 +179,6 @@ AddMarkForTakedownSniperAbility()
 	ReserveActionPointsEffect.ReserveType = class'X2Effect_ReserveTakedownActionPoints'.default.TakedownActionPoint;
 	Template.AddShooterEffect(ReserveActionPointsEffect);
 
-
 	return Template;
 }
 
@@ -210,7 +194,7 @@ AddMarkForTakedownPistolAbility()
 	local X2AbilityCost_ActionPoints        ActionPointCost;
 
 	`CREATE_X2ABILITY_TEMPLATE(Template, 'MarkForTakedownPistol');
-	Template = CreateTakedownCommonProperties(Template);
+	CreateTakedownCommonProperties(Template);
 
 	//Icon Properties
 	Template.IconImage = "img:///UILibrary_PerkIcons.UIPerk_standardpistol";
@@ -239,16 +223,14 @@ AddMarkForTakedownPistolAbility()
 
 
 
-static function X2AbilityTemplate
-CreateTakedownShotCommonProperties(X2AbilityTemplate Template)
+static function
+CreateTakedownShotCommonProperties(out X2AbilityTemplate Template)
 {
 	local X2AbilityToHitCalc_StandardAim				StandardAim;
 	//local X2Condition_UnitProperty						ShooterCondition;
 	local X2AbilityTarget_Single						SingleTarget;
 	local X2Effect_Knockback							KnockbackEffect;
 	local X2Condition_UnitEffectsWithAbilitySource		AbilitySourceCondition; //this check whether the target was marked by us
-
-//	`CREATE_X2ABILITY_TEMPLATE(Template, AbilityName);
 
 	//Icon Properties
 	Template.bDisplayInUITooltip = false;
@@ -261,23 +243,28 @@ CreateTakedownShotCommonProperties(X2AbilityTemplate Template)
 	Template.DisplayTargetHitChance = false;
 
 //Conditions:
-//is alive
+//shooter is alive
 	Template.AbilityShooterConditions.AddItem(default.LivingShooterProperty);
-//is concealed
-	/*
-	ShooterCondition = new class'X2Condition_UnitProperty';
-	ShooterCondition.IsConcealed = true;
-	Template.AbilityShooterConditions.AddItem(ShooterCondition);
-	*/
+
+//shooter is concealed (this prevents shots after the triggering unit exits concealment)
+/*
+	`CTUDEB("CreateTakedownShotCommonProperties(): bRemoveConcealmentRequirement: " $ default.bRemoveConcealmentRequirement);
+	if(!default.bRemoveConcealmentRequirement){
+		Template.AbilityShooterConditions.AddItem( new class'X2Condition_RequireConcealed' );
+	}
+*/
+
 //target is already marked by this soldier
 	AbilitySourceCondition = new class'X2Condition_UnitEffectsWithAbilitySource';
 	AbilitySourceCondition.AddRequireEffect(class'X2Effect_MarkForTakedown'.default.EffectName, 'AA_UnitIsMarkedForTakedown');
 	Template.AbilityTargetConditions.Additem(AbilitySourceCondition);
 // Can't target dead; Can't target friendlies
 	Template.AbilityTargetConditions.AddItem(default.LivingHostileTargetProperty);
-//not needed, but maybe need to modify it to use with my mark
+//may need to modify it to use with my mark
 	//Template.AbilityTargetConditions.AddItem(default.LivingHostileUnitDisallowMindControlProperty); 
 
+//add standard ability cancel behavior for impairing states (panicked, stunned, etc.)
+	Template.AddShooterEffectExclusions();
 
 //Ability gameplay effects
 //Acquire target (only single target within weapon range)
@@ -308,8 +295,6 @@ CreateTakedownShotCommonProperties(X2AbilityTemplate Template)
 //Set it up in the game
 	Template.BuildNewGameStateFn = TypicalAbility_BuildGameState;
 	Template.BuildVisualizationFn = TypicalAbility_BuildVisualization;
-
-	return Template;
 }
 
 
@@ -325,7 +310,7 @@ AddTakedownShotAbility()
 
 	`CREATE_X2ABILITY_TEMPLATE(Template, 'TakedownShot');
 	//set up common properties
-	Template = CreateTakedownShotCommonProperties(Template);
+	CreateTakedownShotCommonProperties(Template);
 
 //Conditions:
 //has ammo
@@ -362,7 +347,7 @@ AddTakedownShotPistolAbility()
 
 	`CREATE_X2ABILITY_TEMPLATE(Template, 'TakedownShotPistol');
 	//set up common properties
-	Template = CreateTakedownShotCommonProperties(Template);
+	CreateTakedownShotCommonProperties(Template);
 
 	ReserveActionPointCost = new class'X2AbilityCost_ReserveActionPoints';
 	ReserveActionPointCost.iNumPoints = 1;
@@ -466,4 +451,5 @@ static simulated function OverwatchAbility_BuildVisualization(XComGameState Visu
 
 DefaultProperties
 {
+	//bRemoveConcealmentRequirement = false;
 }

@@ -16,6 +16,8 @@
     <Folder Include="Src\" />
     <Folder Include="Src\CoordinatedTakedowns\" />
     <Folder Include="Src\CoordinatedTakedowns\Classes\" />
+    <Folder Include="Src\LW_PerkPack_Integrated" />
+    <Folder Include="Src\LW_PerkPack_Integrated\Classes" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Config\XComCoordinatedTakedowns.ini">
@@ -49,6 +51,9 @@
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\CoordinatedTakedowns\Classes\XComGameState_Effect_MarkForTakedown.uc">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="Src\LW_PerkPack_Integrated\Classes\X2Condition_RequireConcealed.uc">
       <SubType>Content</SubType>
     </Content>
     <Content Include="test_notes.txt">

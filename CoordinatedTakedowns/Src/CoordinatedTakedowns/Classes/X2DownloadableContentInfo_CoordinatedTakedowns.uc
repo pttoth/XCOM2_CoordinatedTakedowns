@@ -47,13 +47,13 @@ AddAbilitiesToWeapon(X2ItemTemplateManager		ItemMgr,
 
 	DifficultyVersionCount = WeaponDataTemplateDifficulties.Length;
 	if(0 == DifficultyVersionCount){
-		`CTUWARN("missing weapon:" $ WeaponName $ ", skipping");
+		`CTUWARN("AddAbilitiesToWeapon(): missing weapon:" $ WeaponName $ ", skipping");
 	}else{
-		`CTULOG("Adding abilities to " $ string(WeaponName));
+		`CTULOG("AddAbilitiesToWeapon(): Adding abilities to " $ string(WeaponName));
 		foreach WeaponDataTemplateDifficulties(WeaponDataTemplate){
 			WeaponTemplate = X2WeaponTemplate(WeaponDataTemplate);
-			if(none == WeaponTemplate){
-				`CTUERR("missing weapon template in array:" $ WeaponName $ ", skipping");
+			if(WeaponTemplate == none){
+				`CTUERR("AddAbilitiesToWeapon(): Missing weapon template in array:" $ WeaponName $ ", skipping");
 			}else{
 				foreach AbilityNames(AbilityName){
 					WeaponTemplate.Abilities.AddItem( AbilityName );
@@ -61,7 +61,7 @@ AddAbilitiesToWeapon(X2ItemTemplateManager		ItemMgr,
 			}
 		}
 		if(4 != DifficultyVersionCount){
-			`CTUWARN("Invalid amount of difficulty-templates exist for weapon" 
+			`CTUWARN("AddAbilitiesToWeapon(): Invalid amount of difficulty-templates exist for weapon"
 				$ string(WeaponName) $ "(" $ DifficultyVersionCount $ ")");
 		}
 	}
@@ -79,12 +79,10 @@ AddAbilitiesToPrimaries()
 	TakedownAbilities.AddItem('TakedownShot');
 
 	ItemManager = GetItemTemplateManager();
-	if(none == ItemManager){
-		return;
-	}
-
-	foreach default.CAPABLE_WEAPONS_PRIMARY(WeaponName){
-		AddAbilitiesToWeapon(ItemManager, WeaponName, TakedownAbilities);
+	if(ItemManager != none){
+		foreach default.CAPABLE_WEAPONS_PRIMARY(WeaponName){
+			AddAbilitiesToWeapon(ItemManager, WeaponName, TakedownAbilities);
+		}
 	}
 }
 
@@ -100,12 +98,10 @@ AddAbilitiesToPistols()
 	TakedownAbilities.AddItem('TakedownShotPistol');
 
 	ItemManager = GetItemTemplateManager();
-	if(none == ItemManager){
-		return;
-	}
-
-	foreach default.CAPABLE_WEAPONS_PISTOL(WeaponName){
-		AddAbilitiesToWeapon(ItemManager, WeaponName, TakedownAbilities);
+	if(ItemManager != none){
+		foreach default.CAPABLE_WEAPONS_PISTOL(WeaponName){
+			AddAbilitiesToWeapon(ItemManager, WeaponName, TakedownAbilities);
+		}
 	}
 }
 
@@ -118,16 +114,14 @@ AddAbilitiesToSnipers()
 	local array<name>				TakedownAbilities;
 
 	TakedownAbilities.AddItem('MarkForTakedownSniper');
-	TakedownAbilities.AddItem('TakedownShot');
+	TakedownAbilities.AddItem('TakedownShot');	//snipers don't need custom TakedownShot
 
 	ItemManager = GetItemTemplateManager();
-	if(none == ItemManager){
-		return;
+	if(ItemManager != none){
+		foreach default.CAPABLE_WEAPONS_SNIPER(WeaponName){
+			AddAbilitiesToWeapon(ItemManager, WeaponName, TakedownAbilities);
+		}
 	}
-
-	foreach default.CAPABLE_WEAPONS_SNIPER(WeaponName){
-		AddAbilitiesToWeapon(ItemManager, WeaponName, TakedownAbilities);
-	}	
 }
 
 //--------------------------------------------------
@@ -136,11 +130,11 @@ GetItemTemplateManager()
 {
 	local X2ItemTemplateManager		ItemManager;
 	ItemManager = class'X2ItemTemplateManager'.static.GetItemTemplateManager();
-	if(none != ItemManager){
-		return ItemManager;
+	if(ItemManager == none){
+		`CTUERR("GetItemTemplateManager(): Could not fetch X2ItemTemplateManager!");
+		return none;
 	}
-	`CTUERR("Could not fetch X2ItemTemplateManager!");
-	return none;
+	return ItemManager;
 }
 
 //------------------------------------------------------------------------------------------------------------------
