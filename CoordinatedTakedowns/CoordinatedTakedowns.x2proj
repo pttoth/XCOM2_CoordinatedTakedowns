@@ -29,7 +29,6 @@
     <Content Include="ModDescription.txt">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="ReadMe.txt" />
     <Content Include="ModPreview.jpg" />
     <Content Include="Config\XComEditor.ini" />
     <Content Include="Config\XComEngine.ini" />
@@ -54,9 +53,6 @@
       <SubType>Content</SubType>
     </Content>
     <Content Include="Src\LW_PerkPack_Integrated\Classes\X2Condition_RequireConcealed.uc">
-      <SubType>Content</SubType>
-    </Content>
-    <Content Include="test_notes.txt">
       <SubType>Content</SubType>
     </Content>
   </ItemGroup>
