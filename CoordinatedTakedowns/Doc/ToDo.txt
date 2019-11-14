@@ -24,8 +24,20 @@ planned:
 		see X2Condition_UnitType
 		see X2Condition_UnitProperty
 		Mark cannot target props temporarily
+	see if it supports SnapShot
+
 	show ToHit percentage during aiming
 		has to rewrite deadeye aim, but it will bring back the fail-on-miss bug
+	add "Mark For Takedown" flyover text for unit after casting ability
+		see how it looks over the target's head too
+
+		see the code below:
+			//code from scanning protocol, might be needed
+			FlyOver = X2Action_PlaySoundAndFlyOver(class'X2Action_PlaySoundAndFlyOver'.static.AddToVisualizationTrack(BuildTrack, VisualizeGameState.GetContext()));
+			FlyOver.SetSoundAndFlyOverParameters(none, AbilityTemplate.LocFlyOverText, '', eColor_Bad, AbilityTemplate.IconImage, default.LookAtDuration, true);
+			//use this for it
+			var string  IconImage; //  UI display info for effect SOURCE - usually only applicable for certain abilities, such as Mind Control, where you need to distinguish the source and the target
+
 	remove the mod class override (find an alternative means to work)
 		where does it fail actually?
 	find out if its better to add Takedown to EVERY weapon with StandardShot and variants
@@ -81,6 +93,8 @@ test plans:
 			under suppression
 			enter concealment
 			try mark
+-----
+	Codex clone duplicates mark effect?
 -----
 	check how it works during mind control (is this even possible in a normal game?)
 	---
