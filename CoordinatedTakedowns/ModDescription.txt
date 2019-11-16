@@ -7,6 +7,8 @@ I am aware, that updates to this mod may mess up campaign saves in progress and 
 For Tactical saves unfortunately there isn't any way to prevent updates breaking older saves (if they do). Please DO NOT exit your campaign with a Tactical save, while using a beta version of this mod. Only return to saves from Strategy.
 
 If an update would break a Strategy save, I will put out a new Workshop entry with the new version instead.
+
+If your game happens to crash because of an update, please contact me, I can give you a build of the required version of your choice.
 --------------------------------------------------
 
 Beta v0.1.1
@@ -40,8 +42,8 @@ Planned features:
 -allow props (exploding barrels, etc.) to be Marked and shot at
 -add flyover text (like overwatch) above Marker and/or Target (I'll see which one is better)
 -trigger remaining 'Takedown Shots' before ending Player turn
--trigger 'Takedown Shots' if the enemy with a Mark on it moves
+-trigger 'Takedown Shots' if an enemy with a Mark on it moves
 -add new icons for the ability (I'm very happy to receive contributions)
 -make the ability available through an OTS upgrade
--I'll see whether to add the abiltieis to Grenade/Shredder/Rocket Launchers too (this is both a UI spam and balance issue)
+-I'll see whether to add the abilities to Grenade/Shredder/Rocket Launchers too (this is both a UI spam and balance issue)
 
