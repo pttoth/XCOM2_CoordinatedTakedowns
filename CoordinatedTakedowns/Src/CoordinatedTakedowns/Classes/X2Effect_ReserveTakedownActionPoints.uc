@@ -17,8 +17,8 @@ var name TakedownPistolActionPoint;
 //this is called when the effect is placed (called from: X2Effect_ReserveActionPoints.OnEffectAdded() )
 //determines which type of Takedown Action Point should be added to the soldier
 //	based on the weapon used in the mark ability
-//it checks which Overwatch Action Point would be used and returns its own instead
-//	can use '' as error signaling ???
+//it checks which Action Point type would be used during an Overwatch and returns its own instead
+//	TODO: find out if you can use '' as error signaling!
 simulated function name
 GetReserveType(const out EffectAppliedData	ApplyEffectParameters,
 							XComGameState	NewGameState)

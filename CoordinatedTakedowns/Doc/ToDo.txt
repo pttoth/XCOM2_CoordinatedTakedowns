@@ -25,7 +25,10 @@ planned:
 		see X2Condition_UnitProperty
 		Mark cannot target props temporarily
 	see if it supports SnapShot
-
+	find out how you can print messages to the in-game log, where abilities write
+		you can use it to send notifications that the mod is outdated,
+		if a patch would mess up players' ongoing campaigns
+		this should only be possible when loading right into tactical saves with new version, but who knows...
 	show ToHit percentage during aiming
 		has to rewrite deadeye aim, but it will bring back the fail-on-miss bug
 	add "Mark For Takedown" flyover text for unit after casting ability
@@ -46,6 +49,7 @@ planned:
 			with the weapons' standard shots squadsight availability
 	improve visualization so that the takedown shots happen simultaneously
 		see chain lightning mod for example
+	find a way to ensure that you add the abilities to modded weapons that are loaded AFTER this mod
 	can make it work with AoE targeting launchers too
 		not sure: various grenade types may spam UI
 		do a normal grenade aim targeting
@@ -53,10 +57,9 @@ planned:
 			if you can feed the saved location to the Takedown grenade shot ability,
 				the rest should be straightforward
 		psi abilities too (it may spam the ability UI however)
+	find ModPreview picture
 	find special icons
 	solve all TODO notes
-
-
 
 beautyfix:
 	use ActionsPoints instead of ReserveActionPoints if you can

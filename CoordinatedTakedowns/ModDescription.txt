@@ -1,0 +1,47 @@
+***NOTICE***
+This is a beta release for now, I have a few things (see below) I want to add as soon as I have the time.
+The ability itself works, the updates will only bring quality of life changes and potential bugfixes.
+
+I am aware, that updates to this mod may mess up campaign saves in progress and I intend to avoid that.
+
+For Tactical saves unfortunately there isn't any way to prevent updates breaking older saves (if they do). Please DO NOT exit your campaign with a Tactical save, while using a beta version of this mod. Only return to saves from Strategy.
+
+If an update would break a Strategy save, I will put out a new Workshop entry with the new version instead.
+--------------------------------------------------
+
+Beta v0.1.1
+
+The mod adds an ability to mark units for takedown during concealment. Default overwatch doesn't let you choose the targets you want to shoot at, this ability lets you do that. Any aggressive action taken by a teammate triggers the takedown. The takedown shots take action before the enemy would scamper.
+
+-----
+Compatibility:
+-overrides 'XComGameState_Effect'
+I intend to do a workaround to avoid this override before releasing 1.0.0
+
++Compatible with 'Long War 2'
+
+-Not compatible with 'War of the Chosen'
+I don't have the expansion yet. If you would like to contribute a WotC port, I'm available.
+
+If you have a modded weapon that does not have Mark For Takedown available, see 'XComCoordinatedTakedowns.ini' to make the ability available for it.
+
+-----
+Known Issues:
+-No props can be Marked
+-No chance to hit is displayed during Mark targeting
+-'Takedown Shots' may bug out if the enemy moves or teleports with a Mark on them
+-Some 'MindControl' and LW2 'Command' use cases may bug out the ability
+
+-----
+Planned features:
+-avoid the 'XComGameState_Effect' override for full compatibility
+-allow sequential and parallel visualization in Config (currently only sequential is available)
+-show To-Hit percentages when using 'Mark For Takedown' ability
+-allow props (exploding barrels, etc.) to be Marked and shot at
+-add flyover text (like overwatch) above Marker and/or Target (I'll see which one is better)
+-trigger remaining 'Takedown Shots' before ending Player turn
+-trigger 'Takedown Shots' if the enemy with a Mark on it moves
+-add new icons for the ability (I'm very happy to receive contributions)
+-make the ability available through an OTS upgrade
+-I'll see whether to add the abiltieis to Grenade/Shredder/Rocket Launchers too (this is both a UI spam and balance issue)
+
