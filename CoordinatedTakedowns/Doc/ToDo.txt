@@ -13,7 +13,9 @@ primary:
 	improve visualization so that the takedown shots happen simultaneously
 		see chain lightning mod for example
 
-	
+	see if it works with 'TacticalSuppressors'
+
+
 planned:
 	see that all Long War 2 weapons which should have the ability, do have it
 

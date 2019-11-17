@@ -108,6 +108,7 @@ CreateTakedownCommonProperties(out X2AbilityTemplate Template)
 
 //Set it up in the game
 	Template.BuildNewGameStateFn = TypicalAbility_BuildGameState;
+	Template.BuildVisualizationFn = MarkForTakedown_BuildVisualization;
 //	Template.BuildVisualizationFn = TypicalAbility_BuildVisualization;	//uses a shot animation for marking, replace this
 	//Template.BuildInterruptGameStateFn = TypicalAbility_BuildInterruptGameState;	//TODO: needed?
 
@@ -378,14 +379,53 @@ AddTakedownShotPistolAbility()
 //****************************SNIPERS*******************************
 //------------------------------------------------------------------
 
-
-
-
-
-
-static simulated function OverwatchAbility_BuildVisualization(XComGameState VisualizeGameState, out array<VisualizationTrack> OutVisualizationTracks)
+//------------------------------------------------------------------
+//*************************VISUALIZATION****************************
+//------------------------------------------------------------------
+static function
+MarkForTakedown_BuildVisualization(XComGameState					VisualizeGameState,
+									out array<VisualizationTrack>	OutVisualizationTracks)
 {
-	local XComGameStateHistory History;
+	local XComGameStateContext_Ability		Context;
+	local StateObjectReference				InteractingUnitRef;
+	local XComGameStateHistory				History;
+	local X2Action_PlaySoundAndFlyOver		SoundAndFlyOver;
+	local VisualizationTrack				BuildTrack;
+	local string							FlyOverText, FlyOverImage;
+	local name								CharSpeechName;
+
+	History = `XCOMHISTORY;
+
+	FlyOverText = "Ready for Takedown"; //TODO: move this to Localization
+	CharSpeechName = ''; //Name of the speech the character should bark on activation
+	FlyOverImage = ""; //Mark for Takedown icon here
+
+	Context = XComGameStateContext_Ability(VisualizeGameState.GetContext());
+	InteractingUnitRef = Context.InputContext.SourceObject;
+
+	BuildTrack.StateObject_OldState = History.GetGameStateForObjectID(
+											InteractingUnitRef.ObjectID,
+											eReturnType_Reference,
+											VisualizeGameState.HistoryIndex - 1);
+	BuildTrack.StateObject_NewState = VisualizeGameState.GetGameStateForObjectID(InteractingUnitRef.ObjectID);
+	BuildTrack.TrackActor = History.GetVisualizer(InteractingUnitRef.ObjectID);
+
+	SoundAndFlyOver = X2Action_PlaySoundAndFlyOver(
+							class'X2Action_PlaySoundAndFlyOver'.static.AddToVisualizationTrack(BuildTrack, Context));
+	SoundAndFlyOver.SetSoundAndFlyOverParameters(none, FlyOverText, CharSpeechName, eColor_Good, FlyOverImage);
+
+	OutVisualizationTracks.AddItem(BuildTrack);
+}
+
+
+
+
+
+static simulated function
+OverwatchAbility_BuildVisualization(XComGameState VisualizeGameState,
+									out array<VisualizationTrack> OutVisualizationTracks)
+{
+	local XComGameStateHistory			History;
 	local XComGameStateContext_Ability  Context;
 	local StateObjectReference          InteractingUnitRef;
 
