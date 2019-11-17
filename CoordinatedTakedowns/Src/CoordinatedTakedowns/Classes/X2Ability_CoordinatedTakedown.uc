@@ -1,11 +1,14 @@
 class X2Ability_CoordinatedTakedown
 		extends X2Ability
-		dependson(CTUtilities)
+		dependson(CTUtilities, X2AbilityToHitCalc_MarkForTakedown)
 		config(CoordinatedTakedowns);
 
 `include (CoordinatedTakedowns/Src/CoordinatedTakedowns/Classes/CTGlobals.uci)
 
-var config bool bRemoveConcealmentRequirement;
+var config 		bool 									bRemoveConcealmentRequirement;
+
+//don't modify this
+var protected 	X2AbilityToHitCalc_MarkForTakedown		MarkForTakedownToHitCalc;
 
 //------------------------------------------------------------------
 //***********************CREATE TEMPLATES***************************
@@ -39,7 +42,6 @@ CreateTakedownCommonProperties(out X2AbilityTemplate Template)
 	Template.bDisplayInUITacticalText = false;
 	Template.AbilitySourceName = 'eAbilitySource_Standard';
 	Template.eAbilityIconBehaviorHUD = eAbilityIconBehavior_ShowIfAvailableOrNoTargets;
-	//Template.DisplayTargetHitChance = true;	//TODO: enable this
 	Template.IconImage = "img:///UILibrary_PerkIcons.UIPerk_standard";
 	Template.ShotHUDPriority = class'UIUtilities_Tactical'.const.OVERWATCH_PRIORITY+1;
 	Template.AbilityTriggers.AddItem(default.PlayerInputTrigger);
@@ -76,12 +78,9 @@ CreateTakedownCommonProperties(out X2AbilityTemplate Template)
 	//	Template.CinescriptCameraType = "StandardGunFiring"; 
 	//note: X2Effect_MarkForTakedown takes care of effect application regardless of hit/miss
 	
-	Template.AbilityToHitCalc = default.DeadEye;	//TODO: not good, it messes up displayed hit chances during targeting
-	
-	//Template.AbilityToHitCalc = default.SimpleStandardAim;	//TODO: find a way to fix the turn-not-end problem on miss
-	//Template.AbilityToHitOwnerOnMissCalc = default.DeadEye;
-	//Template.AbilityToHitOwnerOnMissCalc = default.SimpleStandardAim;		//TODO: check, that this is
-																			// X2AbilityTemplate says: 		"If !none, a miss on the main target will apply this chance to hit on the target's owner."
+	//Has to display normal hit chance percentages during targeting,
+	//  but the Mark ability itself always has to hit (it is the effect placement only)
+	Template.AbilityToHitCalc = default.MarkForTakedownToHitCalc;
 
 //add concealment requirement condition
 	`CTUDEB("CreateTemplates(): bRemoveConcealmentRequirement: " $ default.bRemoveConcealmentRequirement);
@@ -253,13 +252,12 @@ CreateTakedownShotCommonProperties(out X2AbilityTemplate Template)
 	Template.eAbilityIconBehaviorHUD = EAbilityIconBehavior_NeverShow;
 	Template.IconImage = "img:///UILibrary_PerkIcons.UIPerk_overwatch";
 	Template.ShotHUDPriority = class'UIUtilities_Tactical'.const.OVERWATCH_PRIORITY;
-	Template.DisplayTargetHitChance = false;
 
 //Conditions:
 //shooter is alive
 	Template.AbilityShooterConditions.AddItem(default.LivingShooterProperty);
 
-//shooter is concealed (this prevents shots after the triggering unit exits concealment)
+//shooter is concealed (bug: this prevents Takedown Shots after the triggering unit exits concealment)
 /*
 	`CTUDEB("CreateTakedownShotCommonProperties(): bRemoveConcealmentRequirement: " $ default.bRemoveConcealmentRequirement);
 	if(!default.bRemoveConcealmentRequirement){
@@ -465,4 +463,8 @@ static simulated function OverwatchAbility_BuildVisualization(XComGameState Visu
 DefaultProperties
 {
 	//bRemoveConcealmentRequirement = false;
+
+	Begin Object Class=X2AbilityToHitCalc_MarkForTakedown Name=DefaultMarkForTakedownToHitCalc
+	End Object
+	MarkForTakedownToHitCalc = DefaultMarkForTakedownToHitCalc;
 }

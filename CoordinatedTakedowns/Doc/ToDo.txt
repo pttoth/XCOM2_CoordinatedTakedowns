@@ -1,6 +1,4 @@
 primary:
-	show ToHit percentage during aiming
-		has to rewrite deadeye aim, but it will bring back the fail-on-miss bug
 	find a way to ensure that you add the abilities to modded weapons that are loaded AFTER this mod
 	improve visualization so that the takedown shots happen simultaneously
 		see chain lightning mod for example
