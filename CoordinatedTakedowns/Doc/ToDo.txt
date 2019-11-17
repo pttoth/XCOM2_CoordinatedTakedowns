@@ -1,14 +1,4 @@
 primary:
-	add "Mark For Takedown" flyover text for unit after casting ability
-		see how it looks over the target's head too
-
-		see the code below:
-			//code from scanning protocol, might be needed
-			FlyOver = X2Action_PlaySoundAndFlyOver(class'X2Action_PlaySoundAndFlyOver'.static.AddToVisualizationTrack(BuildTrack, VisualizeGameState.GetContext()));
-			FlyOver.SetSoundAndFlyOverParameters(none, AbilityTemplate.LocFlyOverText, '', eColor_Bad, AbilityTemplate.IconImage, default.LookAtDuration, true);
-			//use this for it
-			var string  IconImage; //  UI display info for effect SOURCE - usually only applicable for certain abilities, such as Mind Control, where you need to distinguish the source and the target
-
 	find a way to ensure that you add the abilities to modded weapons that are loaded AFTER this mod
 	improve visualization so that the takedown shots happen simultaneously
 		see chain lightning mod for example
