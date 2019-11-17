@@ -25,9 +25,10 @@ IdentifyUnit(XComGameState_Unit Unit)
 }
 
 function
-PrintTakedownActors(XComGameState_Unit Attacker,
-					XComGameState_Unit Marker,
-					XComGameState_Unit MarkedVictim)
+PrintTakedownActors(XComGameState_Unit			Attacker,
+					XComGameState_Unit			Marker,
+					XComGameState_Unit			MarkedVictim,
+					XComGameState_Destructible	MarkedProp)
 {
 	if(Attacker == none){	`CTUERR("Attacker: Could not acquire unit reference");
 	}else{					`CTUDEB("Attacker: '" $ IdentifyUnit(Attacker) $ "'");
@@ -37,6 +38,9 @@ PrintTakedownActors(XComGameState_Unit Attacker,
 	}
 	if(MarkedVictim == none){	`CTUERR("MarkedVictim: Could not acquire unit reference");
 	}else{						`CTUDEB("MarkedVictim: '" $ IdentifyUnit(MarkedVictim) $ "'");
+	}
+	if(MarkedProp == none){		`CTUERR("MarkedProp: Could not acquire prop reference");
+	}else{						`CTUDEB("MarkedProp: Acquired reference");
 	}
 }
 
@@ -77,8 +81,8 @@ TakedownTriggerCheck(Object			EventData,
 	local XComGameStateHistory				History;
 	local XComGameState_Unit				AttackingUnit;
 	local XComGameState_Unit				MarkingUnit, MarkedUnit;
-	//local XComGameState_???				  MarkedProp;	//exploding barrels, etc.
-	local int 								MarkingUnitOwnerID, MarkedUnitOwnerID, PlayerID;
+	local XComGameState_Destructible	  	MarkedProp;	//exploding barrels, etc.
+	local int 								MarkingUnitOwnerID, PlayerID;
 	local X2Effect_MarkForTakedown			MarkEffect;
 	local XComGameState_Ability				TriggeringAbilityState;
 	local XComGameStateContext_Ability		TriggeringAbilityContext;
@@ -118,13 +122,15 @@ TakedownTriggerCheck(Object			EventData,
 
 	//if could not acquire MarkedUnit, it may still be a targetable prop
 	if(MarkedUnit == none){
-		//TODO: acquire prop ref
+		MarkedProp = XComGameState_Destructible(
+							History.GetGameStateForObjectID(
+									ApplyEffectParameters.TargetStateObjectRef.ObjectID ) );
 	}
 
-	PrintTakedownActors(AttackingUnit, MarkingUnit, MarkedUnit); //TODO: print prop ref too
+	PrintTakedownActors(AttackingUnit, MarkingUnit, MarkedUnit, MarkedProp);
 
 	if( (MarkingUnit == none)
-		|| (MarkedUnit == none) )		//TODO: update this condition with prop
+		|| ((MarkedUnit == none) && (MarkedProp == none) ) )
 	{
 		`CTUERR("TakedownTriggerCheck(): Could not acquire all of the units during TakedownTriggerCheck, skipping");
 		return ELR_NoInterrupt;
@@ -142,7 +148,7 @@ TakedownTriggerCheck(Object			EventData,
 
 	PrintInterruptionStatus(TriggeringAbilityContext.InterruptionStatus);
 	MarkingUnitOwnerID	= MarkingUnit.ControllingPlayer.ObjectID;
-	MarkedUnitOwnerID	= MarkedUnit.ControllingPlayer.ObjectID;
+	//MarkedUnitOwnerID	= MarkedUnit.ControllingPlayer.ObjectID;
 	PlayerID			= `TACTICALRULES.GetCachedUnitActionPlayerRef().ObjectID;	//TODO: check whether this is Player or current Player (should be Player)
 
 	if (MarkEffect.bPreEmptiveFire){
@@ -160,7 +166,7 @@ TakedownTriggerCheck(Object			EventData,
 	}
 
 	//only against enemy units
-	if(MarkingUnitOwnerID == MarkedUnitOwnerID ){
+	if( (MarkedUnit != none) && (MarkingUnitOwnerID == MarkedUnit.ControllingPlayer.ObjectID) ){
 		`CTUDEB("TakedownTriggerCheck(): Marking Unit is on the same team as Marked Unit, skipping");
 		return ELR_NoInterrupt;
 	}
@@ -171,7 +177,7 @@ TakedownTriggerCheck(Object			EventData,
 		return ELR_NoInterrupt;
 	}
 
-	//TODO: find out which kind of ReserveActionPoint is available
+	//find out which kind of ReserveActionPoint is available
 	TakedownAbilityName = IdentifyTakedownTypeByAvailableActionPoints(MarkingUnit);
 	TakedownAbilityRef = MarkingUnit.FindAbility( TakedownAbilityName );
 	`CTUDEB("TakedownTriggerCheck(): Trying to identify Takedown ability type to use. Result: '" $ TakedownAbilityName $ "'");
@@ -187,14 +193,26 @@ TakedownTriggerCheck(Object			EventData,
 		return ELR_NoInterrupt;
 	}
 
-	AbilityCanActivateResult = TakedownAbilityState.CanActivateAbilityForObserverEvent(MarkedUnit, MarkingUnit);
+	if(MarkedUnit != none){
+		AbilityCanActivateResult = TakedownAbilityState.CanActivateAbilityForObserverEvent(MarkedUnit, MarkingUnit);
+	}else{
+		//TODO: find out why this fails for props (gives AA_NoTargets)
+		//AbilityCanActivateResult = TakedownAbilityState.CanActivateAbilityForObserverEvent(MarkedProp, MarkingUnit);
+		AbilityCanActivateResult = 'AA_Success'; //is forcing this value a problem?
+	}
+
 	`CTUDEB("TakedownTriggerCheck(): AbilityCanActivateResult: " $ AbilityCanActivateResult);
 	if (AbilityCanActivateResult == 'AA_Success'){
 		`CTUDEB("TakedownTriggerCheck(): TakedownAbilityState activation condition check PASSED");
 
 		//update the GameStateContext of the Triggering ability with the changes
-		TriggeringAbilityContext = class'XComGameStateContext_Ability'.static.
-								BuildContextFromAbility(TakedownAbilityState, MarkedUnit.ObjectID );
+		if(MarkedUnit != none){
+			TriggeringAbilityContext = class'XComGameStateContext_Ability'.static.
+									BuildContextFromAbility(TakedownAbilityState, MarkedUnit.ObjectID );
+		}else{
+			TriggeringAbilityContext = class'XComGameStateContext_Ability'.static.
+									BuildContextFromAbility(TakedownAbilityState, MarkedProp.ObjectID );
+		}
 
 		if( TriggeringAbilityContext.Validate() ){
 			`TACTICALRULES.SubmitGameStateContext(TriggeringAbilityContext);

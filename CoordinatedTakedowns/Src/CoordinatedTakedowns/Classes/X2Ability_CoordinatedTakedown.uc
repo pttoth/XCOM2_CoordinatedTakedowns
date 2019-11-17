@@ -61,9 +61,8 @@ CreateTakedownCommonProperties(out X2AbilityTemplate Template)
 	VisibilityCondition = new class'X2Condition_Visibility';
 	VisibilityCondition.bRequireGameplayVisible = true;
 	Template.AbilityTargetConditions.AddItem(VisibilityCondition);
-//target is a living enemy
-	//Template.AbilityTargetConditions.AddItem(default.LivingHostileTargetProperty);
-	Template.AbilityTargetConditions.AddItem(default.LivingHostileUnitOnlyProperty);	//TODO: temporary: filters shootable props
+//target is a living enemy (or destructible prop)
+	Template.AbilityTargetConditions.AddItem(default.LivingHostileTargetProperty);
 
 //add standard ability cancel behavior for impairing states (panicked, stunned, etc.)
 	Template.AddShooterEffectExclusions();
