@@ -5,7 +5,10 @@ primary:
 
 	see if it works with 'TacticalSuppressors'
 
-
+	Mark ability icon doesn't show in concealment, if there are no targets
+	
+	add an "IsXCOM()" condition to the Mark ability
+		modded enemies may use weapons with Mark ???
 planned:
 	see that all Long War 2 weapons which should have the ability, do have it
 
