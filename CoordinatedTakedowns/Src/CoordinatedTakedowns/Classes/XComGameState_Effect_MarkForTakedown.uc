@@ -84,6 +84,8 @@ TakedownTriggerCheck(Object			EventData,
 					 Name			EventID)
 {
 	local XComGameStateHistory				History;
+	local X2EventManager					EventMgr;
+	local Object							ThisObj;
 	local XComGameState_Unit				AttackingUnit;
 	local XComGameState_Unit				MarkingUnit, MarkedUnit;
 	local XComGameState_Destructible	  	MarkedProp;	//exploding barrels, etc.
@@ -102,7 +104,9 @@ TakedownTriggerCheck(Object			EventData,
 		`CTUERR("TakedownTriggerCheck(): Could not acquire TriggeringAbilityContext!");
 		return ELR_NoInterrupt;
 	}
+	ThisObj = self;
 	History = `XCOMHISTORY;
+	EventMgr = `XEVENTMGR;
 	TriggeringAbilityState = XComGameState_Ability(
 									History.GetGameStateForObjectID(
 											TriggeringAbilityContext.InputContext.AbilityRef.ObjectID));
@@ -222,6 +226,8 @@ TakedownTriggerCheck(Object			EventData,
 		}
 
 		if( TakedownShotAbilityContext.Validate() ){
+			//at this point, our TakedownShot is triggered, so we unregister from further 'AbilityActivated' events
+			EventMgr.UnRegisterFromEvent(ThisObj, 'AbilityActivated');
 			`TACTICALRULES.SubmitGameStateContext(TakedownShotAbilityContext);
 		}else{
 			`CTUERR("TakedownTriggerCheck(): Failed to validate new TakedownShotAbilityContext for Marked unit");
