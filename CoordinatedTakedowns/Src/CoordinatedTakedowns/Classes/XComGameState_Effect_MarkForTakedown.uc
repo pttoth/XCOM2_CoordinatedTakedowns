@@ -36,12 +36,17 @@ PrintTakedownActors(XComGameState_Unit			Attacker,
 	if(Marker == none){		`CTUERR("Marker: Could not acquire unit reference");
 	}else{					`CTUDEB("Marker: '" $ IdentifyUnit(Marker) $ "'");
 	}
-	if(MarkedVictim == none){	`CTUERR("MarkedVictim: Could not acquire unit reference");
+	if(MarkedVictim == none){	//`CTUWARN("MarkedVictim: Could not acquire unit reference");
 	}else{						`CTUDEB("MarkedVictim: '" $ IdentifyUnit(MarkedVictim) $ "'");
 	}
-	if(MarkedProp == none){		`CTUERR("MarkedProp: Could not acquire prop reference");
+	if(MarkedProp == none){		//`CTUWARN("MarkedProp: Could not acquire prop reference");
 	}else{						`CTUDEB("MarkedProp: Acquired reference");
 	}
+	
+	if(MarkedVictim == none && MarkedProp == none){
+		`CTUERR("      Could not acquire target unit or target prop reference!");
+	}
+	
 }
 
 function
@@ -86,6 +91,7 @@ TakedownTriggerCheck(Object			EventData,
 	local X2Effect_MarkForTakedown			MarkEffect;
 	local XComGameState_Ability				TriggeringAbilityState;
 	local XComGameStateContext_Ability		TriggeringAbilityContext;
+	local XComGameStateContext_Ability		TakedownShotAbilityContext;
 	local StateObjectReference				TakedownAbilityRef, EmptyRef;	//TODO: check what ObjectID EmptyRef has
 	local XComGameState_Ability				TakedownAbilityState;
 	local name								TakedownAbilityName;			//stores the Takedown type to use
@@ -199,6 +205,7 @@ TakedownTriggerCheck(Object			EventData,
 		//TODO: find out why this fails for props (gives AA_NoTargets)
 		//AbilityCanActivateResult = TakedownAbilityState.CanActivateAbilityForObserverEvent(MarkedProp, MarkingUnit);
 		AbilityCanActivateResult = 'AA_Success'; //is forcing this value a problem?
+													//a previous check ensures that MarkedUnit and MarkedProp cannot be both 'none'
 	}
 
 	`CTUDEB("TakedownTriggerCheck(): AbilityCanActivateResult: " $ AbilityCanActivateResult);
@@ -207,17 +214,17 @@ TakedownTriggerCheck(Object			EventData,
 
 		//update the GameStateContext of the Triggering ability with the changes
 		if(MarkedUnit != none){
-			TriggeringAbilityContext = class'XComGameStateContext_Ability'.static.
+			TakedownShotAbilityContext = class'XComGameStateContext_Ability'.static.
 									BuildContextFromAbility(TakedownAbilityState, MarkedUnit.ObjectID );
 		}else{
-			TriggeringAbilityContext = class'XComGameStateContext_Ability'.static.
+			TakedownShotAbilityContext = class'XComGameStateContext_Ability'.static.
 									BuildContextFromAbility(TakedownAbilityState, MarkedProp.ObjectID );
 		}
 
-		if( TriggeringAbilityContext.Validate() ){
-			`TACTICALRULES.SubmitGameStateContext(TriggeringAbilityContext);
+		if( TakedownShotAbilityContext.Validate() ){
+			`TACTICALRULES.SubmitGameStateContext(TakedownShotAbilityContext);
 		}else{
-			`CTUERR("TakedownTriggerCheck(): Failed to validate new TriggeringAbilityContext for Marked unit");
+			`CTUERR("TakedownTriggerCheck(): Failed to validate new TakedownShotAbilityContext for Marked unit");
 		}
 	}else{
 		`CTUDEB("TakedownTriggerCheck(): TakedownAbilityState activation condition check FAILED");

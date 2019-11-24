@@ -1,9 +1,13 @@
 //--------------------------------------------------------------------------------------- 
-//  FILE:    X2Condition_RequireConcealed.uc
+//  FILE:    CTCondition_RequireConcealed.uc
 //  AUTHOR:  JL (Pavonis Interactive)
 //  PURPOSE: Allows ability activition only when concealed
+//	NOTE:	 Tapir:
+//				Copied this from LW_PerkPack_Integrated and renamed it to avoid conflict.
+//				Tried putting it to a separate 'LW_PerkPack_Integrated' package
+//					(like LW_Tuple), but it messed up LW_Overhaul's perk trees.
 //---------------------------------------------------------------------------------------
-class X2Condition_RequireConcealed extends X2Condition;
+class CTCondition_RequireConcealed extends X2Condition;
 
 event name CallMeetsCondition(XComGameState_BaseObject kTarget)
 {

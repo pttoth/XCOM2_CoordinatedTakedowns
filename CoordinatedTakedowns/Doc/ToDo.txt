@@ -1,14 +1,18 @@
 primary:
+	targeting still has Chance to Hit missing on the reticle
+		only managed to display it on the HUD, but not on the target
+	targeting doesn't blink expected HP loss for enemy unit as StandardShot aiming does
+
 	find a way to ensure that you add the abilities to modded weapons that are loaded AFTER this mod
 	improve visualization so that the takedown shots happen simultaneously
 		see chain lightning mod for example
 
 	see if it works with 'TacticalSuppressors'
 
-	Mark ability icon doesn't show in concealment, if there are no targets
-	
 	add an "IsXCOM()" condition to the Mark ability
 		modded enemies may use weapons with Mark ???
+	check how it works with vanilla stocks (does it apply miss damage?)
+	check how overkill shots work
 planned:
 	see that all Long War 2 weapons which should have the ability, do have it
 

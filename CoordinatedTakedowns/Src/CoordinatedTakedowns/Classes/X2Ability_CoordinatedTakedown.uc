@@ -5,10 +5,17 @@ class X2Ability_CoordinatedTakedown
 
 `include (CoordinatedTakedowns/Src/CoordinatedTakedowns/Classes/CTGlobals.uci)
 
-var config 		bool 									bRemoveConcealmentRequirement;
+enum eTakedownAnimSequence{
+	eSequential,
+	eSemiSequential,
+	eParallel
+};
 
-//don't modify this
-var protected 	X2AbilityToHitCalc_MarkForTakedown		MarkForTakedownToHitCalc;
+var config 		bool 								bRemoveConcealmentRequirement;
+var config		eTakedownAnimSequence				eVisualizationType;
+
+//vars below should not be modified
+var protected 	X2AbilityToHitCalc_MarkForTakedown	MarkForTakedownToHitCalc;
 
 //------------------------------------------------------------------
 //***********************CREATE TEMPLATES***************************
@@ -28,7 +35,7 @@ CreateTemplates()
 }
 
 static function
-CreateTakedownCommonProperties(out X2AbilityTemplate Template)
+CreateMarkForTakedownCommonProperties(out X2AbilityTemplate Template)
 {
 //used variables	
 	local X2AbilityCost_Ammo				AmmoCost;
@@ -42,6 +49,7 @@ CreateTakedownCommonProperties(out X2AbilityTemplate Template)
 	Template.bDisplayInUITacticalText = false;
 	Template.AbilitySourceName = 'eAbilitySource_Standard';
 	Template.eAbilityIconBehaviorHUD = eAbilityIconBehavior_ShowIfAvailableOrNoTargets;
+	Template.DisplayTargetHitChance = true;
 	Template.IconImage = "img:///UILibrary_PerkIcons.UIPerk_standard";
 	Template.ShotHUDPriority = class'UIUtilities_Tactical'.const.OVERWATCH_PRIORITY+1;
 	Template.AbilityTriggers.AddItem(default.PlayerInputTrigger);
@@ -85,7 +93,7 @@ CreateTakedownCommonProperties(out X2AbilityTemplate Template)
 //add concealment requirement condition
 	`CTUDEB("CreateTemplates(): bRemoveConcealmentRequirement: " $ default.bRemoveConcealmentRequirement);
 	if(!default.bRemoveConcealmentRequirement){
-		Template.AbilityShooterConditions.AddItem( new class'X2Condition_RequireConcealed' );
+		Template.AbilityShooterConditions.AddItem( new class'CTCondition_RequireConcealed' );
 	}
 
 //Ability gameplay effects
@@ -129,7 +137,7 @@ AddMarkForTakedownAbility()
 	local X2Condition_Visibility			VisibilityCondition;
 
 	`CREATE_X2ABILITY_TEMPLATE(Template, 'MarkForTakedown');
-	CreateTakedownCommonProperties(Template);
+	CreateMarkForTakedownCommonProperties(Template);
 
 //allow squadsight usage
 	VisibilityCondition = new class'X2Condition_Visibility';
@@ -167,7 +175,7 @@ AddMarkForTakedownSniperAbility()
 	local X2Condition_Visibility			VisibilityCondition;
 	
 	`CREATE_X2ABILITY_TEMPLATE(Template, 'MarkForTakedownSniper');
-	CreateTakedownCommonProperties(Template);
+	CreateMarkForTakedownCommonProperties(Template);
 
 //allow squadsight usage
 	VisibilityCondition = new class'X2Condition_Visibility';
@@ -185,7 +193,7 @@ AddMarkForTakedownSniperAbility()
 	ActionPointCost.iNumPoints = 2;
 	ActionPointCost.bConsumeAllPoints = true;
 	Template.AbilityCosts.AddItem(ActionPointCost);
-//currently doesnt support snap shot
+//currently doesn't support snap shot
 	//...
 //reserve TakedownActionPoint to use when shooting
 	ReserveActionPointsEffect = new class'X2Effect_ReserveTakedownActionPoints';
@@ -207,13 +215,13 @@ AddMarkForTakedownPistolAbility()
 	local X2AbilityCost_ActionPoints        ActionPointCost;
 
 	`CREATE_X2ABILITY_TEMPLATE(Template, 'MarkForTakedownPistol');
-	CreateTakedownCommonProperties(Template);
+	CreateMarkForTakedownCommonProperties(Template);
 
 	//Icon Properties
 	Template.IconImage = "img:///UILibrary_PerkIcons.UIPerk_standardpistol";
 	Template.ShotHUDPriority = class'UIUtilities_Tactical'.const.PISTOL_OVERWATCH_PRIORITY+1;
 
-//reserve TakedownActionPoint to use when shooting
+//reserve TakedownPistolActionPoint to use when shooting
 	ReserveActionPointsEffect = new class'X2Effect_ReserveTakedownActionPoints';
 	ReserveActionPointsEffect.ReserveType = class'X2Effect_ReserveTakedownActionPoints'.default.TakedownPistolActionPoint;
 	Template.AddShooterEffect(ReserveActionPointsEffect);
@@ -240,7 +248,6 @@ static function
 CreateTakedownShotCommonProperties(out X2AbilityTemplate Template)
 {
 	local X2AbilityToHitCalc_StandardAim				StandardAim;
-	//local X2Condition_UnitProperty						ShooterCondition;
 	local X2AbilityTarget_Single						SingleTarget;
 	local X2Effect_Knockback							KnockbackEffect;
 	local X2Condition_UnitEffectsWithAbilitySource		AbilitySourceCondition; //this check whether the target was marked by us
@@ -262,7 +269,7 @@ CreateTakedownShotCommonProperties(out X2AbilityTemplate Template)
 /*
 	`CTUDEB("CreateTakedownShotCommonProperties(): bRemoveConcealmentRequirement: " $ default.bRemoveConcealmentRequirement);
 	if(!default.bRemoveConcealmentRequirement){
-		Template.AbilityShooterConditions.AddItem( new class'X2Condition_RequireConcealed' );
+		Template.AbilityShooterConditions.AddItem( new class'CTCondition_RequireConcealed' );
 	}
 */
 
@@ -298,7 +305,6 @@ CreateTakedownShotCommonProperties(out X2AbilityTemplate Template)
 	//Template.AddTargetEffect(default.WeaponUpgradeMissDamage);
 	Template.AssociatedPassives.AddItem('HoloTargeting'); // marks to gain the aim bonus?
 
-
 //visuals (knockback)
 	KnockbackEffect = new class'X2Effect_Knockback';
 	KnockbackEffect.KnockbackDistance = 2;
@@ -306,7 +312,8 @@ CreateTakedownShotCommonProperties(out X2AbilityTemplate Template)
 	Template.AddTargetEffect(KnockbackEffect);
 //Set it up in the game
 	Template.BuildNewGameStateFn = TypicalAbility_BuildGameState;
-	Template.BuildVisualizationFn = TypicalAbility_BuildVisualization;
+	Template.BuildVisualizationFn = TakedownShot_BuildVisualization;
+	Template.BuildInterruptGameStateFn = TypicalAbility_BuildInterruptGameState;
 }
 
 
@@ -382,11 +389,11 @@ AddTakedownShotPistolAbility()
 //------------------------------------------------------------------
 //*************************VISUALIZATION****************************
 //------------------------------------------------------------------
-static function
+function
 MarkForTakedown_BuildVisualization(XComGameState					VisualizeGameState,
 									out array<VisualizationTrack>	OutVisualizationTracks)
 {
-	local XComGameStateContext_Ability		Context;
+	local XComGameStateContext_Ability		AbilityContext;
 	local StateObjectReference				InteractingUnitRef;
 	local XComGameStateHistory				History;
 	local X2Action_PlaySoundAndFlyOver		SoundAndFlyOver;
@@ -396,29 +403,257 @@ MarkForTakedown_BuildVisualization(XComGameState					VisualizeGameState,
 
 	History = `XCOMHISTORY;
 
-	FlyOverText = "Ready for Takedown"; //TODO: move this to Localization
-	CharSpeechName = ''; //Name of the speech the character should bark on activation
-	FlyOverImage = ""; //Mark for Takedown icon here
+	FlyOverText = "Ready for Takedown";		//TODO: move this to Localization
+	CharSpeechName = '';					//Name of the speech the character should bark on activation
+	FlyOverImage = "";						//Mark for Takedown icon path here
 
-	Context = XComGameStateContext_Ability(VisualizeGameState.GetContext());
-	InteractingUnitRef = Context.InputContext.SourceObject;
+	AbilityContext = XComGameStateContext_Ability(VisualizeGameState.GetContext());
+	InteractingUnitRef = AbilityContext.InputContext.SourceObject;
 
-	BuildTrack.StateObject_OldState = History.GetGameStateForObjectID(
-											InteractingUnitRef.ObjectID,
-											eReturnType_Reference,
-											VisualizeGameState.HistoryIndex - 1);
+	BuildTrack.StateObject_OldState = History.GetGameStateForObjectID( InteractingUnitRef.ObjectID,
+																		eReturnType_Reference,
+																		VisualizeGameState.HistoryIndex - 1);
 	BuildTrack.StateObject_NewState = VisualizeGameState.GetGameStateForObjectID(InteractingUnitRef.ObjectID);
 	BuildTrack.TrackActor = History.GetVisualizer(InteractingUnitRef.ObjectID);
 
 	SoundAndFlyOver = X2Action_PlaySoundAndFlyOver(
-							class'X2Action_PlaySoundAndFlyOver'.static.AddToVisualizationTrack(BuildTrack, Context));
+							class'X2Action_PlaySoundAndFlyOver'.static.AddToVisualizationTrack(BuildTrack, AbilityContext));
 	SoundAndFlyOver.SetSoundAndFlyOverParameters(none, FlyOverText, CharSpeechName, eColor_Good, FlyOverImage);
 
 	OutVisualizationTracks.AddItem(BuildTrack);
 }
 
+function
+TakedownShot_BuildVisualization(XComGameState					VisualizeGameState,
+								out array<VisualizationTrack>	OutVisualizationTracks)
+{
+	switch(default.eVisualizationType){
+		case eSequential:
+			`CTUDEB("Using 'eSequential' visualization");
+			TypicalAbility_BuildVisualization(VisualizeGameState, OutVisualizationTracks);
+			break;
+		case eSemiSequential:
+			`CTUDEB("Using 'eSemiSequential' visualization");
+			TakedownShot_BuildVisualization_SemiSequential(VisualizeGameState, OutVisualizationTracks);
+			break;
+		case eParallel:
+			`CTUDEB("Using 'eParallel' visualization");
+			TakedownShot_BuildVisualization_Parallel(VisualizeGameState, OutVisualizationTracks);
+			break;
+		default:
+			`CTUERR("Could not identify 'eVisualizationType' setting! Using fallback Visualization instead!");
+			//use standard shot visuals (sequential)
+			TypicalAbility_BuildVisualization(VisualizeGameState, OutVisualizationTracks);
+			break;
+	}
+}
+
+function
+TakedownShot_BuildVisualization_DisplayFlyOver(XComGameState					VisualizeGameState,
+												out array<VisualizationTrack>	OutVisualizationTracks)
+{
+	local XComGameStateContext_Ability		AbilityContext;
+	local StateObjectReference				InteractingUnitRef;
+	local XComGameStateHistory				History;
+
+	local X2Action_PlaySoundAndFlyOver		SoundAndFlyOver;
+	local VisualizationTrack				BuildTrack;
+	local string							FlyOverText, FlyOverImage;
+	local name								CharSpeechName;
+
+	`CTUDEB("Visualization: building FlyOver text visualization");
+
+//init local variables
+	History = `XCOMHISTORY;
+
+	FlyOverText = "Coordinated Takedown";	//TODO: move this to Localization
+	CharSpeechName = '';					//Name of the speech the character should bark on activation
+	FlyOverImage = "";						//Mark for Takedown icon path here
+
+	AbilityContext = XComGameStateContext_Ability(VisualizeGameState.GetContext());
+	InteractingUnitRef = AbilityContext.InputContext.SourceObject;
 
 
+
+	BuildTrack.StateObject_OldState = History.GetGameStateForObjectID( InteractingUnitRef.ObjectID,
+																		eReturnType_Reference,
+																		VisualizeGameState.HistoryIndex - 1);
+	BuildTrack.StateObject_NewState = VisualizeGameState.GetGameStateForObjectID(InteractingUnitRef.ObjectID);
+	BuildTrack.TrackActor = History.GetVisualizer(InteractingUnitRef.ObjectID);
+
+
+//show flyover, play silently
+	SoundAndFlyOver = X2Action_PlaySoundAndFlyOver(
+							class'X2Action_PlaySoundAndFlyOver'.static.AddToVisualizationTrack(BuildTrack, AbilityContext));
+	SoundAndFlyOver.SetSoundAndFlyOverParameters(none, FlyOverText, CharSpeechName, eColor_Good, FlyOverImage);
+	OutVisualizationTracks.AddItem(BuildTrack);
+}
+
+function
+TakedownShot_BuildVisualization_SemiSequential(XComGameState					VisualizeGameState,
+												out array<VisualizationTrack>	OutVisualizationTracks)
+{
+
+
+	local XComGameStateHistory					History;
+	local XComGameStateVisualizationMgr			VisMgr;
+	local X2AbilityTemplateManager				AbilityTemplateMgr;
+
+	local XComGameStateContext_Ability			AbilityContext;
+	local X2AbilityTemplate						AbilityTemplate;
+
+	local Actor									ShooterVisualizer;
+	local VisualizationTrackModInfo				CurrentInfo;
+	local array<VisualizationTrackModInfo>		VisTrackModInfoArray;	//metainfo about visualization blocks we need
+																		//	(read: info about any VisBlock where the TrackActor is doing a TakedownShot)
+	local int									idx;
+	local int									idx_action;
+	local array<VisualizationTrack>				PendingTakedownVisTracks;
+	local X2Action_EnterCover					EnterCoverAction;
+
+	History 			= `XCOMHISTORY;
+	VisMgr				= `XCOMVISUALIZATIONMGR;
+	AbilityTemplateMgr	= class'X2AbilityTemplateManager'.static.GetAbilityTemplateManager();
+
+	AbilityContext		= XComGameStateContext_Ability(VisualizeGameState.GetContext());
+	AbilityTemplate		= AbilityTemplateMgr.FindAbilityTemplate(AbilityContext.InputContext.AbilityTemplateName);
+	ShooterVisualizer	= History.GetVisualizer(AbilityContext.InputContext.SourceObject.ObjectID);
+
+	//-------------------------------------------------------
+	//set up the TrackInfo start index to: right after any previous TakedownShot's shoot animation
+
+	if(AbilityContext == none){
+		`CTUERR("Visualization: Could not acquire 'AbilityContext' reference. Aborting");
+		return;
+	}
+
+	if(AbilityTemplate == none){
+		`CTUERR("Visualization: Could not acquire 'AbilityTemplate' reference. Aborting");
+		return;
+	}
+
+	if(ShooterVisualizer == none){
+		`CTUERR("Visualization: Could not acquire 'ShooterVisualizer' reference. Aborting");
+		return;
+	}
+
+	`CTUDEB("Visualization: AbilityTemplate name: " $ AbilityTemplate.DataName);
+
+
+	//fill VisTrackModInfoArray
+	VisMgr.GetVisModInfoForTrackActor(AbilityTemplate.DataName,
+									  ShooterVisualizer,
+									  VisTrackModInfoArray);
+
+	if(VisTrackModInfoArray.Length <= 0){
+		`CTUDEB("Visualization: could not find VisTrackModInfo instances!");
+	}else{
+	//if(0 < VisTrackModInfoArray.Length){
+		//find the latest valid instance
+		`CTUDEB("Visualization: found VisTrackModInfo instances ("$ VisTrackModInfoArray.Length $")");
+		for(idx = VisTrackModInfoArray.Length-1; idx >= 0; --idx){
+			CurrentInfo = VisTrackModInfoArray[idx];
+			`CTUDEB("Visualization: checking VisTrackModInfoArray["$idx$"]");
+			`CTUDEB("Visualization:   AbilityContext: "$ "???");
+			`CTUDEB("Visualization:   BlockIndex: "$ CurrentInfo.BlockIndex);
+			`CTUDEB("Visualization:   TrackIndex: "$ CurrentInfo.TrackIndex);
+			//Modify the VisualizationBlock so that we don't wait for the previous shooter to re-enter cover
+			VisMgr.GetTrackActions(CurrentInfo.BlockIndex, PendingTakedownVisTracks);
+			`CTUDEB("Visualization: found " $ PendingTakedownVisTracks.Length $ " Pending Takedown VisTracks");
+			for(idx_action = PendingTakedownVisTracks[CurrentInfo.TrackIndex].TrackActions.Length-1;
+				idx_action >= 0;
+				--idx_action)
+			{
+				`CTUDEB("Visualization: checking PendingTakedownVisTracks["$CurrentInfo.TrackIndex$"].TrackActions["$idx_action$"]");
+				//find an EnterCover action from the back
+				EnterCoverAction = X2Action_EnterCover(PendingTakedownVisTracks[CurrentInfo.TrackIndex].TrackActions[idx_action]);
+				if(EnterCoverAction != none){
+					`CTUDEB("Visualization: found EnterCover action");
+					//set the new shot to play during the previous shot's EnterCover animation
+					AbilityContext.SetVisualizationStartIndex(EnterCoverAction.CurrentHistoryIndex);
+
+					//TODO: remove this
+					//Remove the EnterCover action. The last OverwatchShot will return the soldier to cover.
+					VisMgr.RemovePendingTrackAction(CurrentInfo.BlockIndex, CurrentInfo.TrackIndex, idx_action);
+					break;
+				}
+			}
+		}
+	}
+	//-------------------------------------------------------
+	//build the flyover text
+	TakedownShot_BuildVisualization_DisplayFlyOver(VisualizeGameState, OutVisualizationTracks);
+	//-------------------------------------------------------
+	//build the rest of the shooting animation
+	TypicalAbility_BuildVisualization(VisualizeGameState, OutVisualizationTracks);
+}
+
+function
+TakedownShot_BuildVisualization_Parallel(XComGameState					VisualizeGameState,
+										out array<VisualizationTrack>	OutVisualizationTracks)
+{
+	TypicalAbility_BuildVisualization(VisualizeGameState, OutVisualizationTracks);	//placeholder build fn
+}
+
+//--------------------------------------------------
+
+function
+OverwatchShot_BuildVisualization(XComGameState VisualizeGameState,
+								out array<VisualizationTrack> OutVisualizationTracks)
+{
+	local X2AbilityTemplate					AbilityTemplate;
+	local Actor								ShooterVisualizer;
+	local XComGameStateContext_Ability		Context;
+	local XComGameStateVisualizationMgr		VisManager;
+	local array<VisualizationTrackModInfo>	InfoArray;
+	local VisualizationTrackModInfo			CurrentInfo;
+	local XComGameState_Unit				TargetUnitState;
+	local XComGameState_AIGroup				AIGroup;
+	local X2Action_EnterCover				EnterCoverAction;
+	local int								InfoIndex, ActionIndex;
+	local bool								bModifiedTrack;
+	local array<VisualizationTrack>			LocalVisualizationTracks;
+
+	Context = XComGameStateContext_Ability(VisualizeGameState.GetContext());
+	AbilityTemplate = class'XComGameState_Ability'.static.GetMyTemplateManager().FindAbilityTemplate(Context.InputContext.AbilityTemplateName);
+	ShooterVisualizer = `XCOMHISTORY.GetVisualizer(Context.InputContext.SourceObject.ObjectID);
+
+	VisManager = `XCOMVISUALIZATIONMGR;
+
+	//Find pending visualization blocks where the TrackActor is performing OverwatchShot
+	VisManager.GetVisModInfoForTrackActor(AbilityTemplate.DataName, ShooterVisualizer, InfoArray);
+	if (InfoArray.Length > 0)
+	{
+		//Iterate backwards to find the latest instance
+		for (InfoIndex = InfoArray.Length - 1; InfoIndex >= 0 && !bModifiedTrack; --InfoIndex)
+		{
+			CurrentInfo = InfoArray[InfoIndex];
+			TargetUnitState = XComGameState_Unit(`XCOMHISTORY.GetGameStateForObjectID(CurrentInfo.Context.InputContext.PrimaryTarget.ObjectID));
+			AIGroup = TargetUnitState.GetGroupMembership();
+			//Modify the exiting visualization block if the TrackActor is firing at an enemy in the same UI group as the current target.
+			if (AIGroup.m_arrMembers.Find('ObjectID', Context.InputContext.PrimaryTarget.ObjectID) != INDEX_NONE)
+			{
+				VisManager.GetTrackActions(CurrentInfo.BlockIndex, LocalVisualizationTracks);
+				//Look for the EnterCover action of the previous OverwatchShot
+				for (ActionIndex = LocalVisualizationTracks[CurrentInfo.TrackIndex].TrackActions.Length - 1; ActionIndex >= 0; --ActionIndex)
+				{
+					EnterCoverAction = X2Action_EnterCover(LocalVisualizationTracks[CurrentInfo.TrackIndex].TrackActions[ActionIndex]);
+					if (EnterCoverAction != none)
+					{
+						//Set this new action to trigger after the previous overwatch
+						Context.SetVisualizationStartIndex(EnterCoverAction.CurrentHistoryIndex);
+						//Remove the EnterCover action. The last OverwatchShot will return the soldier to cover.
+						VisManager.RemovePendingTrackAction(CurrentInfo.BlockIndex, CurrentInfo.TrackIndex, ActionIndex);
+						bModifiedTrack = true;
+						break;
+					}
+				}
+			}
+		}
+	}
+	//Continue building the OverwatchShot visualization as normal.
+	TypicalAbility_BuildVisualization(VisualizeGameState, OutVisualizationTracks);
+}
 
 
 static simulated function
