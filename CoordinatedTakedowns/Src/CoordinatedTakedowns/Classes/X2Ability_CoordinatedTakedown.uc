@@ -586,6 +586,12 @@ TakedownShot_BuildVisualization_SemiSequential(XComGameState					VisualizeGameSt
 	//-------------------------------------------------------
 	//build the rest of the shooting animation
 	TypicalAbility_BuildVisualization(VisualizeGameState, OutVisualizationTracks);
+
+	//at this point the animations are complete, but the consequences of the shots (hit anims, dmg flyover,
+	//	explosions, etc.) choronogically stay where they would be in a sequential animation
+	//the misplaced, non-parallel timings have to be fixed before returning
+	//	TODO:...
+
 }
 
 function

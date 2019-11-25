@@ -98,6 +98,7 @@ TakedownTriggerCheck(Object			EventData,
 	local XComGameState_Ability				TakedownAbilityState;
 	local name								TakedownAbilityName;			//stores the Takedown type to use
 	local name								AbilityCanActivateResult;
+	local eTakedownAnimSequence				VisualizationType;
 
 	TriggeringAbilityContext = XComGameStateContext_Ability(GameState.GetContext());
 	if (TriggeringAbilityContext == none){
@@ -219,11 +220,19 @@ TakedownTriggerCheck(Object			EventData,
 		//update the GameStateContext of the Triggering ability with the changes
 		if(MarkedUnit != none){
 			TakedownShotAbilityContext = class'XComGameStateContext_Ability'.static.
-									BuildContextFromAbility(TakedownAbilityState, MarkedUnit.ObjectID );
+												BuildContextFromAbility(TakedownAbilityState, MarkedUnit.ObjectID );
 		}else{
 			TakedownShotAbilityContext = class'XComGameStateContext_Ability'.static.
-									BuildContextFromAbility(TakedownAbilityState, MarkedProp.ObjectID );
+												BuildContextFromAbility(TakedownAbilityState, MarkedProp.ObjectID );
 		}
+
+
+		//set up desired start time if parallel animations are set
+		VisualizationType = class'X2Ability_MarkForTakedown'.default.eVisualizationType;
+		if( (VisualizationType == eSemiSequential) || (VisualizationType == eParallel) ){
+			TakedownShotAbilityContext.SetDesiredVisualizationBlockIndex( GameState.HistoryIndex ); //start parallel with triggering ability
+		}
+
 
 		if( TakedownShotAbilityContext.Validate() ){
 			//at this point, our TakedownShot is triggered, so we unregister from further 'AbilityActivated' events
